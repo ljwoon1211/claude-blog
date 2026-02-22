@@ -52,13 +52,79 @@ refactor/{scope}  # 리팩토링
 
 ### 커밋 메시지
 
+[Conventional Commits](https://www.conventionalcommits.org/) 스펙을 따른다.
+
+#### 형식
+
 ```
-feat: 포스트 CRUD API 추가
-fix: 댓글 페이지네이션 오류 수정
-refactor: oRPC 미들웨어 구조 개선
-docs: API 문서 업데이트
-test: 포스트 생성 유스케이스 테스트 추가
-chore: 의존성 업데이트
+<type>(<scope>): <subject>
+
+[body]
+
+[footer]
+```
+
+- **type**: 변경 종류 (아래 표 참고)
+- **scope**: 변경 범위 (선택, 소문자) — 예: `post`, `auth`, `db`
+- **subject**: 명령형 현재 시제, 마침표 없음, 50자 이내
+- **body**: 선택, 72자 줄바꿈, "무엇을"이 아닌 **"왜"** 설명
+- **footer**: `BREAKING CHANGE:` 또는 이슈 참조 (`Closes #123`)
+
+#### 타입 정의
+
+| 타입       | 언제 사용                                    |
+| ---------- | -------------------------------------------- |
+| `feat`     | 새로운 기능 추가                             |
+| `fix`      | 버그 수정                                    |
+| `refactor` | 기능 변경 없는 코드 구조 개선                |
+| `perf`     | 성능 개선                                    |
+| `test`     | 테스트 추가/수정 (프로덕션 코드 변경 없음)   |
+| `docs`     | 문서(README, JSDoc 등)만 변경                |
+| `style`    | 포맷팅, 세미콜론 등 코드 의미 변화 없는 변경 |
+| `chore`    | 빌드 도구, 의존성, CI 설정 등 기타 변경      |
+| `ci`       | CI/CD 파이프라인 변경                        |
+| `revert`   | 이전 커밋 되돌리기                           |
+
+#### 예시
+
+```
+# 기본 (타입: 설명)
+feat(post): 포스트 CRUD API 추가
+fix(auth): 토큰 만료 시 리다이렉트 누락 수정
+refactor(orpc): 미들웨어 체이닝 구조 개선
+docs: CLAUDE.md에 커밋 메시지 작성법 추가
+test(post): 포스트 생성 유스케이스 단위 테스트 추가
+chore: drizzle-orm 0.37 → 0.38 업데이트
+
+# 본문 포함 (이유 설명이 필요한 경우)
+fix(db): 동시 요청 시 커넥션 풀 고갈 수정
+
+Supabase 무료 플랜 커넥션 한도(60개)를 고려해
+풀 사이즈를 기본값 10에서 5로 낮춤.
+pg-pool 공식 문서의 워크로드 계산식 참고.
+
+Closes #42
+
+# Breaking Change
+feat(api)!: oRPC 응답 형식 표준화
+
+BREAKING CHANGE: success 필드 제거, data 직접 반환
+```
+
+#### 금지 패턴
+
+```
+# ❌ 모호한 subject
+fix: 수정
+chore: 업데이트
+feat: 기능 추가
+
+# ❌ 과거 시제
+feat: 로그인 기능을 추가했다
+fix: 버그를 수정했음
+
+# ❌ 여러 변경을 한 커밋에 묶기
+feat: 포스트 API 추가 + 댓글 버그 수정 + 의존성 업데이트
 ```
 
 ### PR
