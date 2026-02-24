@@ -11,6 +11,9 @@ dependencies:
   '@orpc/client':
     specifier: ^1.13.5
     version: 1.13.5(@opentelemetry/api@1.9.0)
+  '@orpc/react-query':
+    specifier: ^1.13.5
+    version: 1.13.5(@opentelemetry/api@1.9.0)(@orpc/client@1.13.5)(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21)(react@19.2.3)
   '@orpc/server':
     specifier: ^1.13.5
     version: 1.13.5(@opentelemetry/api@1.9.0)
@@ -20,6 +23,9 @@ dependencies:
   '@sentry/nextjs':
     specifier: ^10.39.0
     version: 10.39.0(@opentelemetry/context-async-hooks@2.5.1)(@opentelemetry/core@2.5.1)(@opentelemetry/sdk-trace-base@2.5.1)(next@16.1.6)(react@19.2.3)(webpack@5.105.2)
+  '@supabase/ssr':
+    specifier: ^0.8.0
+    version: 0.8.0(@supabase/supabase-js@2.97.0)
   '@supabase/supabase-js':
     specifier: ^2.97.0
     version: 2.97.0
@@ -34,7 +40,7 @@ dependencies:
     version: 2.1.1
   drizzle-orm:
     specifier: ^0.45.1
-    version: 0.45.1(@opentelemetry/api@1.9.0)
+    version: 0.45.1(@opentelemetry/api@1.9.0)(postgres@3.4.8)
   lucide-react:
     specifier: ^0.575.0
     version: 0.575.0(react@19.2.3)
@@ -44,6 +50,12 @@ dependencies:
   next-intl:
     specifier: ^4.8.3
     version: 4.8.3(next@16.1.6)(react@19.2.3)(typescript@5.9.3)
+  next-themes:
+    specifier: ^0.4.6
+    version: 0.4.6(react-dom@19.2.3)(react@19.2.3)
+  postgres:
+    specifier: ^3.4.8
+    version: 3.4.8
   radix-ui:
     specifier: ^1.4.3
     version: 1.4.3(@types/react-dom@19.2.3)(@types/react@19.2.14)(react-dom@19.2.3)(react@19.2.3)
@@ -56,6 +68,9 @@ dependencies:
   react-hook-form:
     specifier: ^7.71.2
     version: 7.71.2(react@19.2.3)
+  sonner:
+    specifier: ^2.0.7
+    version: 2.0.7(react-dom@19.2.3)(react@19.2.3)
   tailwind-merge:
     specifier: ^3.5.0
     version: 3.5.0
@@ -97,6 +112,9 @@ devDependencies:
   '@vitejs/plugin-react':
     specifier: ^5.1.4
     version: 5.1.4(vite@7.3.1)
+  dotenv:
+    specifier: ^17.3.1
+    version: 17.3.1
   drizzle-kit:
     specifier: ^0.31.9
     version: 0.31.9
@@ -2472,6 +2490,23 @@ packages:
       - ws
     dev: false
 
+  /@orpc/react-query@1.13.5(@opentelemetry/api@1.9.0)(@orpc/client@1.13.5)(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21)(react@19.2.3):
+    resolution: {integrity: sha512-Rh3ys81ZTCKIiBcPczafLFpv2elsJi5v9PvmmMPsAr+7QwN4/URk1TERqACeSVGd2ZNdgetdkn8GW/s/7tB1XQ==}
+    peerDependencies:
+      '@orpc/client': 1.13.5
+      '@tanstack/react-query': '>=5.80.2'
+      react: '>=18.3.0'
+    dependencies:
+      '@orpc/client': 1.13.5(@opentelemetry/api@1.9.0)
+      '@orpc/shared': 1.13.5(@opentelemetry/api@1.9.0)
+      '@orpc/tanstack-query': 1.13.5(@opentelemetry/api@1.9.0)(@orpc/client@1.13.5)(@tanstack/query-core@5.90.20)
+      '@tanstack/react-query': 5.90.21(react@19.2.3)
+      react: 19.2.3
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+      - '@tanstack/query-core'
+    dev: false
+
   /@orpc/server@1.13.5(@opentelemetry/api@1.9.0):
     resolution: {integrity: sha512-RiSzyZ8hp3XmG6F98czJNV3BsRW/5zjUnOk1v16KIiuYk3p46bYEpzhHJT5Sxr5DOjmm4xHTV+fe0gczyyf+gA==}
     peerDependencies:
@@ -2570,6 +2605,19 @@ packages:
     resolution: {integrity: sha512-Upu82h5TlKOWlttcL+TTkIxyJEzjdKWd8Ri9ya8o1+BxYiqd/y3TQnmBQM+pfj8N1w+zI86Q3cLGB8RGtMqf5g==}
     dependencies:
       '@orpc/shared': 1.13.5(@opentelemetry/api@1.9.0)
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+    dev: false
+
+  /@orpc/tanstack-query@1.13.5(@opentelemetry/api@1.9.0)(@orpc/client@1.13.5)(@tanstack/query-core@5.90.20):
+    resolution: {integrity: sha512-DUgwJ/IiXAf7CFes2eLFKwFS9bBB4y6OZCiiualHiBE8nUumUw1/ErbXJnD52JbbyT9EriITInUM5iz0c1PBjQ==}
+    peerDependencies:
+      '@orpc/client': 1.13.5
+      '@tanstack/query-core': '>=5.80.2'
+    dependencies:
+      '@orpc/client': 1.13.5(@opentelemetry/api@1.9.0)
+      '@orpc/shared': 1.13.5(@opentelemetry/api@1.9.0)
+      '@tanstack/query-core': 5.90.20
     transitivePeerDependencies:
       - '@opentelemetry/api'
     dev: false
@@ -4686,6 +4734,15 @@ packages:
       - utf-8-validate
     dev: false
 
+  /@supabase/ssr@0.8.0(@supabase/supabase-js@2.97.0):
+    resolution: {integrity: sha512-/PKk8kNFSs8QvvJ2vOww1mF5/c5W8y42duYtXvkOSe+yZKRgTTZywYG2l41pjhNomqESZCpZtXuWmYjFRMV+dw==}
+    peerDependencies:
+      '@supabase/supabase-js': ^2.76.1
+    dependencies:
+      '@supabase/supabase-js': 2.97.0
+      cookie: 1.1.1
+    dev: false
+
   /@supabase/storage-js@2.97.0:
     resolution: {integrity: sha512-9f6NniSBfuMxOWKwEFb+RjJzkfMdJUwv9oHuFJKfe/5VJR8cd90qw68m6Hn0ImGtwG37TUO+QHtoOechxRJ1Yg==}
     engines: {node: '>=20.0.0'}
@@ -6551,7 +6608,7 @@ packages:
       - supports-color
     dev: true
 
-  /drizzle-orm@0.45.1(@opentelemetry/api@1.9.0):
+  /drizzle-orm@0.45.1(@opentelemetry/api@1.9.0)(postgres@3.4.8):
     resolution: {integrity: sha512-Te0FOdKIistGNPMq2jscdqngBRfBpC8uMFVwqjf6gtTVJHIQ/dosgV/CLBU2N4ZJBsXL5savCba9b0YJskKdcA==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
@@ -6644,6 +6701,7 @@ packages:
         optional: true
     dependencies:
       '@opentelemetry/api': 1.9.0
+      postgres: 3.4.8
     dev: false
 
   /dunder-proto@1.0.1:
@@ -8912,6 +8970,16 @@ packages:
       - '@swc/helpers'
     dev: false
 
+  /next-themes@0.4.6(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA==}
+    peerDependencies:
+      react: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+    dependencies:
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+    dev: false
+
   /next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.2.3)(react@19.2.3):
     resolution: {integrity: sha512-hkyRkcu5x/41KoqnROkfTm2pZVbKxvbZRuNvKXLRXxs3VfyO0WhY50TQS40EuKO9SW3rBj/sF3WbVwDACeMZyw==}
     engines: {node: '>=20.9.0'}
@@ -9395,6 +9463,11 @@ packages:
     engines: {node: '>=0.10.0'}
     dependencies:
       xtend: 4.0.2
+    dev: false
+
+  /postgres@3.4.8:
+    resolution: {integrity: sha512-d+JFcLM17njZaOLkv6SCev7uoLaBtfK86vMUXhW1Z4glPWh4jozno9APvW/XKFJ3CCxVoC7OL38BqRydtu5nGg==}
+    engines: {node: '>=12'}
     dev: false
 
   /powershell-utils@0.1.0:
@@ -10201,6 +10274,16 @@ packages:
       ansi-styles: 6.2.3
       is-fullwidth-code-point: 5.1.0
     dev: true
+
+  /sonner@2.0.7(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-W6ZN4p58k8aDKA4XPcx2hpIQXBRAgyiWVkYhT7CvK6D3iAu7xjvVyhQHg2/iaKJZ1XVJ4r7XuwGL+WGEK37i9w==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+    dependencies:
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+    dev: false
 
   /source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
