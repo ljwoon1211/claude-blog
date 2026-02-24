@@ -123,7 +123,7 @@ DDD (백엔드):    domain(순수 TS, 외부 의존 금지) ← application ← 
 
 1. 도메인: `src/domains/post/` (DDD 구조)
 2. API: `src/server/orpc/routers/post.ts` (oRPC 프로시저)
-3. UI: `src/entities/post/`, `src/features/post-*/, `src/widgets/PostFeed/`
+3. UI: `src/entities/post/`, `src/features/post-*/`, `src/widgets/post-feed/`
 
 ---
 

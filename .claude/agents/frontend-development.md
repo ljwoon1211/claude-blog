@@ -6,7 +6,7 @@
 src/
 ├── app/          # 전역 providers, styles, store
 ├── pages/        # 페이지 컴포지션 (라우트별 조합)
-├── widgets/      # 복합 UI 블록 (Header, PostFeed, Sidebar)
+├── widgets/      # 복합 UI 블록 (header/, post-feed/, sidebar/)
 ├── features/     # 사용자 기능 단위 (post-create, post-search, auth)
 ├── entities/     # 비즈니스 도메인 UI (post/PostCard, user/UserAvatar)
 └── shared/       # 공유 유틸리티, API 클라이언트, 공통 UI
@@ -38,8 +38,8 @@ src/
 **widgets/** — 복합 UI 블록
 
 - 여러 entities/features를 조합한 독립적 UI 블록
-- 예: `Header` (로고 + 네비게이션 + 사용자 메뉴)
-- 예: `PostFeed` (PostCard 목록 + 페이지네이션 + 필터)
+- 예: `header/` (로고 + 네비게이션 + 사용자 메뉴)
+- 예: `post-feed/` (PostCard 목록 + 페이지네이션 + 필터)
 
 **features/** — 사용자 기능
 
