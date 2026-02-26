@@ -1,9 +1,9 @@
-// Drizzle ORM 설정
-// TODO: Supabase PostgreSQL 연결 후 활성화
+// schema를 주입해 relational queries를 활용하는 Drizzle 인스턴스
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 
-// import { drizzle } from 'drizzle-orm/postgres-js';
-// import postgres from 'postgres';
-//
-// const connectionString = process.env.DATABASE_URL!;
-// const client = postgres(connectionString);
-// export const db = drizzle(client);
+import * as schema from '@/shared/db/schema';
+
+const client = postgres(process.env.DATABASE_URL!);
+export const db = drizzle(client, { schema });
+export type DB = typeof db;

@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import {
   boolean,
   jsonb,
@@ -64,3 +65,26 @@ export const slugRedirects = pgTable('slug_redirects', {
     .references(() => posts.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const postsRelations = relations(posts, ({ many }) => ({
+  postTags: many(postTags),
+  images: many(images),
+  slugRedirects: many(slugRedirects),
+}));
+
+export const tagsRelations = relations(tags, ({ many }) => ({
+  postTags: many(postTags),
+}));
+
+export const postTagsRelations = relations(postTags, ({ one }) => ({
+  post: one(posts, { fields: [postTags.postId], references: [posts.id] }),
+  tag: one(tags, { fields: [postTags.tagId], references: [tags.id] }),
+}));
+
+export const imagesRelations = relations(images, ({ one }) => ({
+  post: one(posts, { fields: [images.postId], references: [posts.id] }),
+}));
+
+export const slugRedirectsRelations = relations(slugRedirects, ({ one }) => ({
+  post: one(posts, { fields: [slugRedirects.postId], references: [posts.id] }),
+}));

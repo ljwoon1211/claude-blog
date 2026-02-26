@@ -8,8 +8,8 @@
 
 ### Phase 1: 핵심 기능 (P0)
 
-1. [ ] DB 스키마 설계 및 마이그레이션 (posts, tags, post_tags, images, slug_redirects)
-2. [ ] 어드민 인증 (Supabase Auth) + `/login` 페이지
+1. [x] DB 스키마 설계 및 마이그레이션 (posts, tags, post_tags, images, slug_redirects)
+2. [x] 어드민 인증 (Supabase Auth) + `/login` 페이지
 3. [ ] 게시글 CRUD API (oRPC) — 슬러그 리다이렉트 포함
 4. [ ] 태그 시스템 API
 5. [ ] 이미지 업로드/삭제 API (Cloudflare R2) + 라이프사이클 관리

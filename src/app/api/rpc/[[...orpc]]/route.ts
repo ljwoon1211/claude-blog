@@ -7,30 +7,30 @@ const handler = new RPCHandler(appRouter);
 
 export async function GET(request: Request) {
   return handler.handle(request, {
-    context: createContext(),
+    context: createContext(request),
   });
 }
 
 export async function POST(request: Request) {
   return handler.handle(request, {
-    context: createContext(),
+    context: createContext(request),
   });
 }
 
 export async function PUT(request: Request) {
   return handler.handle(request, {
-    context: createContext(),
+    context: createContext(request),
   });
 }
 
 export async function PATCH(request: Request) {
   return handler.handle(request, {
-    context: createContext(),
+    context: createContext(request),
   });
 }
 
 export async function DELETE(request: Request) {
   return handler.handle(request, {
-    context: createContext(),
+    context: createContext(request),
   });
 }

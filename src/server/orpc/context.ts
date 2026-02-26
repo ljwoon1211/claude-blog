@@ -1,9 +1,14 @@
-// oRPC 서버 컨텍스트 정의
-// 인증, DB 커넥션 등을 여기서 설정
+// 모든 oRPC 프로시저에서 공유하는 요청 컨텍스트
+import { type DB, db } from '@/server/db';
 
-// TODO: Supabase, DB 등 컨텍스트 추가
-export type Context = object;
+export type Context = {
+  db: DB;
+  headers: Headers;
+};
 
-export function createContext(): Context {
-  return {};
+export function createContext(request: Request): Context {
+  return {
+    db,
+    headers: request.headers,
+  };
 }
