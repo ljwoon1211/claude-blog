@@ -132,17 +132,30 @@ export function usePostList(cursor?: string) {
 ```ts
 // features/post-create/model/store.ts
 import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
 
 interface PostCreateStore {
   isDraftSaved: boolean;
+  draftData: Record<string, any>;
   setDraftSaved: (saved: boolean) => void;
+  updateDraftField: (field: string, value: any) => void;
 }
 
-export const usePostCreateStore = create<PostCreateStore>((set) => ({
-  isDraftSaved: false,
-  setDraftSaved: (saved) => set({ isDraftSaved: saved }),
-}));
+export const usePostCreateStore = create<PostCreateStore>()(
+  immer((set) => ({
+    isDraftSaved: false,
+    draftData: {},
+    setDraftSaved: (saved) => set({ isDraftSaved: saved }),
+    updateDraftField: (field, value) =>
+      set((state) => {
+        state.draftData[field] = value;
+      }),
+  })),
+);
 ```
+
+- 객체나 배열 등 복잡한 상태를 업데이트할 때는 `immer` 미들웨어 필수 사용
+- 전개 연산자(`...`)나 깊은 복사 금지
 
 ### 폼 상태: react-hook-form + Zod
 

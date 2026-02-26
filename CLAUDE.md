@@ -74,6 +74,7 @@ DDD (백엔드):    domain(순수 TS, 외부 의존 금지) ← application ← 
 - shadcn/ui 기본 컴포넌트 직접 수정 → `src/shared/ui/`에 래핑
 - 하드코딩 문자열 (UI 텍스트) → next-intl 메시지 키
 - raw SQL → Drizzle ORM 파라미터화 쿼리
+- 구조분해할당이나 전개 연산자(Spread)를 이용한 복잡한 객체 복사 → `immer` 사용
 
 ### 구현 순서 원칙
 
