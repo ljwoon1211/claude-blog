@@ -3,12 +3,12 @@ import { type DB, db } from '@/server/db';
 
 export type Context = {
   db: DB;
-  headers: Headers;
+  headers?: Headers;
 };
 
-export function createContext(request: Request): Context {
+export function createContext(request?: Request): Context {
   return {
     db,
-    headers: request.headers,
+    headers: request?.headers,
   };
 }

@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { createClient } from '@/shared/lib/supabase/server';
 
-import { os } from '../index';
+import { os } from '../base';
 
 const loginSchema = z.object({
   email: z.string().email('유효한 이메일을 입력해주세요.'),

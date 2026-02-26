@@ -6,31 +6,36 @@ import { createContext } from '@/server/orpc/context';
 const handler = new RPCHandler(appRouter);
 
 export async function GET(request: Request) {
-  return handler.handle(request, {
+  const result = await handler.handle(request, {
     context: createContext(request),
   });
+  return result.response;
 }
 
 export async function POST(request: Request) {
-  return handler.handle(request, {
+  const result = await handler.handle(request, {
     context: createContext(request),
   });
+  return result.response;
 }
 
 export async function PUT(request: Request) {
-  return handler.handle(request, {
+  const result = await handler.handle(request, {
     context: createContext(request),
   });
+  return result.response;
 }
 
 export async function PATCH(request: Request) {
-  return handler.handle(request, {
+  const result = await handler.handle(request, {
     context: createContext(request),
   });
+  return result.response;
 }
 
 export async function DELETE(request: Request) {
-  return handler.handle(request, {
+  const result = await handler.handle(request, {
     context: createContext(request),
   });
+  return result.response;
 }

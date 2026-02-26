@@ -63,7 +63,7 @@ project-root/
 │   │   ├── styles/                   # 전역 CSS, 테마
 │   │   └── store/                    # 전역 Zustand 스토어
 │   │
-│   ├── pages/                        # FSD: 페이지 컴포지션
+│   ├── views/                        # FSD: 페이지 컴포지션 (Next.js Pages 라우터 충돌 방지)
 │   │   └── home/                     # 홈 페이지 조합 로직
 │   │
 │   ├── widgets/                      # FSD: 복합 UI 블록

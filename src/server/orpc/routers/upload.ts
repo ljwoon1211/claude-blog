@@ -5,7 +5,7 @@ import { deleteImage } from '@/domains/image/application/use-cases/delete-image'
 import { presignUpload } from '@/domains/image/application/use-cases/presign-upload';
 import { DrizzleImageRepository } from '@/domains/image/infrastructure/repositories/drizzle-image-repository';
 
-import { os } from '../index';
+import { os } from '../base';
 import { protectedProcedure } from '../middleware/auth';
 
 export const uploadRouter = os.router({

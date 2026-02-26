@@ -44,7 +44,7 @@
 ### 아키텍처 의존 방향
 
 ```
-FSD (프론트엔드): app → pages → widgets → features → entities → shared
+FSD (프론트엔드): app → views → widgets → features → entities → shared
 DDD (백엔드):    domain(순수 TS, 외부 의존 금지) ← application ← infrastructure
 ```
 
@@ -80,7 +80,7 @@ DDD (백엔드):    domain(순수 TS, 외부 의존 금지) ← application ← 
 
 ```
 백엔드 먼저: domain → application → infrastructure → oRPC 라우터
-프론트 이후: entities → features → widgets → pages
+프론트 이후: entities → features → widgets → views
 ```
 
 ### oRPC 사용처 구분

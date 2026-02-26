@@ -5,5 +5,5 @@ import { appRouter } from '@/server/orpc';
 import { createContext } from '@/server/orpc/context';
 
 export const serverOrpc = createRouterClient(appRouter, {
-  context: createContext,
+  context: () => createContext(),
 });

@@ -3,7 +3,7 @@ import { ORPCError } from '@orpc/server';
 
 import { createClient } from '@/shared/lib/supabase/server';
 
-import { os } from '../index';
+import { os } from '../base';
 
 export const authMiddleware = os.middleware(async ({ context, next }) => {
   const supabase = await createClient();

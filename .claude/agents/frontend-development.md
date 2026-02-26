@@ -5,7 +5,7 @@
 ```
 src/
 ├── app/          # 전역 providers, styles, store
-├── pages/        # 페이지 컴포지션 (라우트별 조합)
+├── views/        # 페이지 컴포지션 (라우트별 조합)
 ├── widgets/      # 복합 UI 블록 (header/, post-feed/, sidebar/)
 ├── features/     # 사용자 기능 단위 (post-create, post-search, auth)
 ├── entities/     # 비즈니스 도메인 UI (post/PostCard, user/UserAvatar)
@@ -29,7 +29,7 @@ src/
 - `styles/`: 전역 CSS, Tailwind 기본 설정
 - `store/`: 앱 전역 Zustand 스토어
 
-**pages/** — 페이지 컴포지션
+**views/** — 페이지 컴포지션
 
 - Next.js `app/` 라우트에서 호출되는 페이지 조합 컴포넌트
 - widgets와 features를 조합하여 완성된 페이지 구성

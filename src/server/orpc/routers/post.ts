@@ -13,7 +13,7 @@ import { updatePost } from '@/domains/post/application/use-cases/update-post';
 import { DrizzlePostRepository } from '@/domains/post/infrastructure/repositories/drizzle-post-repository';
 import * as schema from '@/shared/db/schema';
 
-import { os } from '../index';
+import { os } from '../base';
 import { protectedProcedure } from '../middleware/auth';
 
 const categorySchema = z.enum(['portfolio', 'study', 'retrospective', 'page']);
