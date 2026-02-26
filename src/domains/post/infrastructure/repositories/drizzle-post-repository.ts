@@ -1,4 +1,4 @@
-import { and, eq, ilike, lt, or, sql } from 'drizzle-orm';
+import { and, eq, ilike, inArray, lt, or } from 'drizzle-orm';
 
 import type { DB } from '@/server/db';
 import * as schema from '@/shared/db/schema';
@@ -71,20 +71,12 @@ export class DrizzlePostRepository implements PostRepository {
       });
       if (!tagRow) return { posts: [], nextCursor: null };
 
-      const postIdRows = await this.db
+      const postIdsQuery = this.db
         .select({ postId: schema.postTags.postId })
         .from(schema.postTags)
         .where(eq(schema.postTags.tagId, tagRow.id));
 
-      const postIds = postIdRows.map((r) => r.postId);
-      if (postIds.length === 0) return { posts: [], nextCursor: null };
-
-      conditions.push(
-        sql`${schema.posts.id} IN (${sql.join(
-          postIds.map((id) => sql`${id}`),
-          sql`, `,
-        )})`,
-      );
+      conditions.push(inArray(schema.posts.id, postIdsQuery));
     }
 
     const rows = await this.db.query.posts.findMany({
@@ -110,33 +102,37 @@ export class DrizzlePostRepository implements PostRepository {
   async create(
     input: CreatePostInput & { slug: string; authorId: string },
   ): Promise<Post> {
-    const [inserted] = await this.db
-      .insert(schema.posts)
-      .values({
-        title: input.title,
-        slug: input.slug,
-        content: input.content,
-        category: input.category,
-        thumbnail: input.thumbnail ?? null,
-        published: input.published,
-        authorId: input.authorId,
-      })
-      .returning();
+    const insertedPostId = await this.db.transaction(async (tx) => {
+      const [inserted] = await tx
+        .insert(schema.posts)
+        .values({
+          title: input.title,
+          slug: input.slug,
+          content: input.content,
+          category: input.category,
+          thumbnail: input.thumbnail ?? null,
+          published: input.published,
+          authorId: input.authorId,
+        })
+        .returning();
 
-    const insertedPost = inserted!;
+      const insertedPost = inserted!;
 
-    // 태그 upsert + 연결
-    if (input.tags.length > 0) {
-      const tagIds = await this.upsertTags(input.tags);
-      await this.db.insert(schema.postTags).values(
-        tagIds.map((tagId) => ({
-          postId: insertedPost.id,
-          tagId,
-        })),
-      );
-    }
+      // 태그 upsert + 연결
+      if (input.tags.length > 0) {
+        const tagIds = await this.upsertTags(tx, input.tags);
+        await tx.insert(schema.postTags).values(
+          tagIds.map((tagId) => ({
+            postId: insertedPost.id,
+            tagId,
+          })),
+        );
+      }
 
-    const post = await this.findById(insertedPost.id);
+      return insertedPost.id;
+    });
+
+    const post = await this.findById(insertedPostId);
     return post!;
   }
 
@@ -149,27 +145,29 @@ export class DrizzlePostRepository implements PostRepository {
     if (input.published !== undefined) updates.published = input.published;
     if (input.thumbnail !== undefined) updates.thumbnail = input.thumbnail;
 
-    await this.db
-      .update(schema.posts)
-      .set(updates)
-      .where(eq(schema.posts.id, input.id));
+    await this.db.transaction(async (tx) => {
+      await tx
+        .update(schema.posts)
+        .set(updates)
+        .where(eq(schema.posts.id, input.id));
 
-    // 태그 업데이트
-    if (input.tags !== undefined) {
-      await this.db
-        .delete(schema.postTags)
-        .where(eq(schema.postTags.postId, input.id));
+      // 태그 업데이트
+      if (input.tags !== undefined) {
+        await tx
+          .delete(schema.postTags)
+          .where(eq(schema.postTags.postId, input.id));
 
-      if (input.tags.length > 0) {
-        const tagIds = await this.upsertTags(input.tags);
-        await this.db.insert(schema.postTags).values(
-          tagIds.map((tagId) => ({
-            postId: input.id,
-            tagId,
-          })),
-        );
+        if (input.tags.length > 0) {
+          const tagIds = await this.upsertTags(tx, input.tags);
+          await tx.insert(schema.postTags).values(
+            tagIds.map((tagId) => ({
+              postId: input.id,
+              tagId,
+            })),
+          );
+        }
       }
-    }
+    });
 
     const post = await this.findById(input.id);
     return post!;
@@ -179,18 +177,19 @@ export class DrizzlePostRepository implements PostRepository {
     await this.db.delete(schema.posts).where(eq(schema.posts.id, id));
   }
 
-  private async upsertTags(tagNames: string[]): Promise<string[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async upsertTags(tx: any, tagNames: string[]): Promise<string[]> {
     const tagIds: string[] = [];
 
     for (const name of tagNames) {
       const slug = createSlug(name);
 
-      await this.db
+      await tx
         .insert(schema.tags)
         .values({ name, slug })
         .onConflictDoNothing({ target: schema.tags.name });
 
-      const tag = await this.db.query.tags.findFirst({
+      const tag = await tx.query.tags.findFirst({
         where: eq(schema.tags.name, name),
       });
       if (tag) tagIds.push(tag.id);

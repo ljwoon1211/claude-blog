@@ -2,8 +2,9 @@ import { ORPCError } from '@orpc/server';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { cleanupPostImages } from '@/domains/image/application/use-cases/sync-post-images';
+import { syncPostImages } from '@/domains/image/application/use-cases/sync-post-images';
 import { DrizzleImageRepository } from '@/domains/image/infrastructure/repositories/drizzle-image-repository';
+import { deleteObject } from '@/domains/image/infrastructure/storage/r2-storage';
 import { createPost } from '@/domains/post/application/use-cases/create-post';
 import { deletePost } from '@/domains/post/application/use-cases/delete-post';
 import { getPostBySlug } from '@/domains/post/application/use-cases/get-post-by-slug';
@@ -76,7 +77,12 @@ export const postRouter = os.router({
     )
     .handler(async ({ input, context }) => {
       const repo = new DrizzlePostRepository(context.db);
-      return createPost(repo, input, context.user.id);
+      const post = await createPost(repo, input, context.user.id);
+
+      const imageRepo = new DrizzleImageRepository(context.db);
+      await syncPostImages(imageRepo, post.id, input.content);
+
+      return post;
     }),
 
   update: protectedProcedure
@@ -102,18 +108,44 @@ export const postRouter = os.router({
           .onConflictDoNothing({ target: schema.slugRedirects.oldSlug });
       };
 
-      return updatePost(repo, input, saveSlugRedirect);
+      const post = await updatePost(repo, input, saveSlugRedirect);
+
+      if (input.content !== undefined) {
+        const imageRepo = new DrizzleImageRepository(context.db);
+        await syncPostImages(imageRepo, post.id, input.content);
+      }
+
+      return post;
     }),
 
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .handler(async ({ input, context }) => {
-      const postRepo = new DrizzlePostRepository(context.db);
       const imageRepo = new DrizzleImageRepository(context.db);
 
-      await deletePost(postRepo, input.id, (postId) =>
-        cleanupPostImages(imageRepo, postId),
-      );
+      // 1. 삭제할 이미지 목록을 먼저 조회
+      const imagesToDelete = await imageRepo.findByPostId(input.id);
+
+      // 2. DB 삭제 (트랜잭션으로 원자성 보장)
+      await context.db.transaction(async (tx) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const txPostRepo = new DrizzlePostRepository(tx as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const txImageRepo = new DrizzleImageRepository(tx as any);
+
+        // 먼저 자식 레코드 이미지들을 삭제
+        await txImageRepo.deleteByPostId(input.id);
+
+        // 게시글 DB 레코드 삭제
+        await deletePost(txPostRepo, input.id, async () => {
+          /* R2 삭제 분리로 인한 No-op */
+        });
+      });
+
+      // 3. 스토리지(R2) 객체 실제 삭제 (결과적 일관성)
+      for (const img of imagesToDelete) {
+        await deleteObject(img.key).catch(console.error);
+      }
 
       return { success: true };
     }),

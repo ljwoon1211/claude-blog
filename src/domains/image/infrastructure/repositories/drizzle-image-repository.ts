@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 
 import type { DB } from '@/server/db';
 import * as schema from '@/shared/db/schema';
@@ -43,6 +43,16 @@ export class DrizzleImageRepository implements ImageRepository {
       .update(schema.images)
       .set({ postId })
       .where(eq(schema.images.id, imageId));
+  }
+
+  async linkUnlinkedByUrls(urls: string[], postId: string): Promise<void> {
+    if (urls.length === 0) return;
+    await this.db
+      .update(schema.images)
+      .set({ postId })
+      .where(
+        and(isNull(schema.images.postId), inArray(schema.images.url, urls)),
+      );
   }
 
   async deleteById(id: string): Promise<void> {
