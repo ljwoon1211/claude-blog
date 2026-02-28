@@ -2,19 +2,19 @@ import { ORPCError } from '@orpc/server';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { syncPostImages } from '@/domains/image/application/use-cases/sync-post-images';
-import { DrizzleImageRepository } from '@/domains/image/infrastructure/repositories/drizzle-image-repository';
-import { deleteObject } from '@/domains/image/infrastructure/storage/r2-storage';
-import { createPost } from '@/domains/post/application/use-cases/create-post';
-import { deletePost } from '@/domains/post/application/use-cases/delete-post';
-import { getPostBySlug } from '@/domains/post/application/use-cases/get-post-by-slug';
-import { listPosts } from '@/domains/post/application/use-cases/list-posts';
-import { updatePost } from '@/domains/post/application/use-cases/update-post';
-import { DrizzlePostRepository } from '@/domains/post/infrastructure/repositories/drizzle-post-repository';
+import { DrizzleImageRepository } from '@/domains/image/repository';
+import { deleteObject } from '@/domains/image/storage';
+import { syncPostImages } from '@/domains/image/use-cases/sync-post-images';
+import { DrizzlePostRepository } from '@/domains/post/repository';
+import { createPost } from '@/domains/post/use-cases/create-post';
+import { deletePost } from '@/domains/post/use-cases/delete-post';
+import { getPostBySlug } from '@/domains/post/use-cases/get-post-by-slug';
+import { listPosts } from '@/domains/post/use-cases/list-posts';
+import { updatePost } from '@/domains/post/use-cases/update-post';
 import * as schema from '@/shared/db/schema';
 
 import { os } from '../base';
-import { protectedProcedure } from '../middleware/auth';
+import { protectedProcedure } from '../middleware';
 
 const categorySchema = z.enum(['portfolio', 'study', 'retrospective', 'page']);
 

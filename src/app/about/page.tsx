@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { Post } from '@/domains/post/domain/entities/post';
+import { Post } from '@/domains/post/types';
 import { serverOrpc } from '@/shared/api/orpc.server';
 import { Button } from '@/shared/ui/button';
 

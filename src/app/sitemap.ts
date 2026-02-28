@@ -3,7 +3,7 @@ import { MetadataRoute } from 'next';
 import { serverOrpc } from '@/shared/api/orpc.server';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const postsData = await serverOrpc.post.list({ limit: 100 });
+  const postsData = await serverOrpc.post.list({ limit: 50 });
   const posts = postsData?.posts ?? [];
 
   const postEntries: MetadataRoute.Sitemap = posts.map((post) => ({

@@ -1,6 +1,7 @@
-import { Post } from '@/domains/post/domain/entities/post';
+import { Post } from '@/domains/post/types';
+import { HeroSection } from '@/features/home/components/hero-section';
+import { RecentPostsSection } from '@/features/home/components/recent-posts-section';
 import { serverOrpc } from '@/shared/api/orpc.server';
-import { HeroSection, RecentPostsSection } from '@/widgets/home';
 
 export default async function Home() {
   const [portfolioData, studyData] = await Promise.all([

@@ -1,4 +1,4 @@
-import { LoginForm } from '@/features/auth/ui/login-form';
+import { LoginForm } from '@/features/auth/components/login-form';
 
 export const metadata = {
   title: '로그인 - 기술 블로그',

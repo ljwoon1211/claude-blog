@@ -68,23 +68,29 @@ export const serverOrpc = createRouterClient(appRouter, {
 ### 라우터 구조
 
 ```
-src/server/orpc/routers/
+src/server/orpc/
 ├── index.ts          # appRouter (모든 라우터 합성)
-├── post.ts           # 포스트 관련 프로시저
-├── user.ts           # 사용자 관련 프로시저
-└── comment.ts        # 댓글 관련 프로시저
+├── base.ts           # oRPC 설정 (os)
+├── context.ts        # 요청 컨텍스트 타입
+├── middleware.ts      # 인증 미들웨어 (protectedProcedure)
+└── routers/
+    ├── auth.ts       # 인증 프로시저
+    ├── post.ts       # 포스트 프로시저
+    ├── tag.ts        # 태그 프로시저
+    └── upload.ts     # 이미지 업로드 프로시저
 ```
 
-라우터는 plain JS 객체로 구성:
+라우터 예시:
 
 ```ts
 import { z } from 'zod';
 
-import { GetPostsUseCase } from '@/domains/post/application/get-posts';
+import { DrizzlePostRepository } from '@/domains/post/repository';
+import { listPosts } from '@/domains/post/use-cases/list-posts';
 
-import { os } from '../orpc-setup';
+import { os } from '../base';
 
-export const postRouter = {
+export const postRouter = os.router({
   list: os
     .input(
       z.object({
@@ -93,29 +99,20 @@ export const postRouter = {
       }),
     )
     .handler(async ({ input, context }) => {
-      const useCase = new GetPostsUseCase(/* inject repo */);
-      return useCase.execute(input);
+      const repo = new DrizzlePostRepository(context.db);
+      return listPosts(repo, input);
     }),
-
-  getBySlug: os
-    .input(z.object({ slug: z.string() }))
-    .handler(async ({ input, context }) => {
-      // DDD 유스케이스 호출
-    }),
-};
+});
 ```
 
 ### 미들웨어
 
 ```
-src/server/orpc/middleware/
-├── auth.ts           # 인증 확인
-├── rate-limit.ts     # Upstash rate limiting
-└── logging.ts        # 요청 로깅
+src/server/orpc/middleware.ts
 ```
 
 ```ts
-import { os } from '../orpc-setup';
+import { os } from './base';
 
 export const authMiddleware = os.middleware(async ({ context, next }) => {
   const session = await getSession(context.request);
@@ -129,98 +126,84 @@ export const protectedProcedure = os.use(authMiddleware);
 
 ---
 
-## DDD 도메인 구조
+## 도메인 구조 (플랫)
 
 ```
 src/domains/{domain}/
-├── domain/               # 핵심 비즈니스 로직
-│   ├── entities/         # 엔티티 (Post, User)
-│   ├── value-objects/    # 값 객체 (Slug, Email)
-│   ├── repositories/     # 저장소 인터페이스
-│   └── events/           # 도메인 이벤트
-│
-├── application/          # 애플리케이션 서비스
-│   ├── use-cases/        # 유스케이스 (CreatePost, GetPosts)
-│   ├── commands/         # 커맨드 (입력 DTO)
-│   └── queries/          # 쿼리 (조회 DTO)
-│
-└── infrastructure/       # 기술 구현
-    ├── repositories/     # Drizzle 저장소 구현체
-    └── mappers/          # 엔티티 ↔ DB 매핑
+├── types.ts          # 타입, 인터페이스 (엔티티, DTO, Repository 인터페이스)
+├── repository.ts     # Drizzle 저장소 구현체 (+ toDomain 매퍼 내장)
+├── slug.ts           # 값 객체 (post 도메인 예시)
+├── storage.ts        # 외부 스토리지 연동 (image 도메인 예시)
+└── use-cases/        # 유스케이스 (비즈니스 로직)
+    ├── create-post.ts
+    ├── update-post.ts
+    └── list-posts.ts
 ```
 
-### 레이어 규칙
+### 파일별 역할
 
-| 레이어             | 참조 가능              | 참조 금지                                    |
-| ------------------ | ---------------------- | -------------------------------------------- |
-| **domain**         | 없음 (순수 TypeScript) | application, infrastructure, 외부 라이브러리 |
-| **application**    | domain                 | infrastructure, 외부 라이브러리              |
-| **infrastructure** | domain, application    | -                                            |
+| 파일              | 역할                                    | 의존 규칙                         |
+| ----------------- | --------------------------------------- | --------------------------------- |
+| **types.ts**      | 엔티티 타입, DTO, Repository 인터페이스 | 순수 TS, 외부 의존 없음           |
+| **repository.ts** | Drizzle 구현체 + DB↔도메인 매퍼         | types.ts + Drizzle 참조           |
+| **use-cases/**    | 비즈니스 로직 (함수형)                  | types.ts만 참조 (repository 주입) |
+| **slug.ts 등**    | 값 객체, 유틸리티                       | 순수 TS                           |
+| **storage.ts**    | 외부 서비스 연동 (R2 등)                | 환경변수 + SDK                    |
+
+### 구현 순서
+
+```
+types.ts → repository.ts → use-cases/ → oRPC 라우터
+```
 
 ### 예시: Post 도메인
 
 ```ts
-// domain/entities/post.ts — 순수 TypeScript, 외부 의존 없음
-export class Post {
-  constructor(
-    public readonly id: string,
-    public readonly title: string,
-    public readonly slug: Slug,
-    public readonly content: string,
-    public readonly status: PostStatus,
-    public readonly createdAt: Date,
-  ) {}
+// domains/post/repository.ts — Drizzle 구현체
+import { createSlug } from '../slug';
+// domains/post/use-cases/create-post.ts — types만 참조, repo는 주입
+import type { CreatePostInput, Post, PostRepository } from '../types';
+import type { Post, PostRepository } from './types';
 
-  publish(): Post {
-    if (this.status !== 'draft')
-      throw new Error('Only draft posts can be published');
-    return new Post(
-      this.id,
-      this.title,
-      this.slug,
-      this.content,
-      'published',
-      this.createdAt,
-    );
-  }
+// domains/post/types.ts — 순수 TypeScript
+export interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  content: unknown;
+  category: PostCategory;
+  published: boolean;
+  createdAt: Date;
 }
 
-// domain/repositories/post-repository.ts — 인터페이스만 정의
 export interface PostRepository {
-  findBySlug(slug: Slug): Promise<Post | null>;
-  findAll(options: { cursor?: string; limit: number }): Promise<Post[]>;
-  save(post: Post): Promise<void>;
+  findBySlug(slug: string): Promise<Post | null>;
+  findAll(options: ListPostsOptions): Promise<ListPostsResult>;
+  create(input: CreatePostInput): Promise<Post>;
 }
 
-// application/use-cases/create-post.ts — domain만 참조
-export class CreatePostUseCase {
-  constructor(private readonly postRepo: PostRepository) {}
-
-  async execute(command: CreatePostCommand): Promise<Post> {
-    const slug = Slug.create(command.title);
-    const post = new Post(
-      generateId(),
-      command.title,
-      slug,
-      command.content,
-      'draft',
-      new Date(),
-    );
-    await this.postRepo.save(post);
-    return post;
-  }
+function toDomain(row: typeof posts.$inferSelect): Post {
+  return { id: row.id, title: row.title /* ... */ };
 }
 
-// infrastructure/repositories/drizzle-post-repository.ts — Drizzle 구현체
 export class DrizzlePostRepository implements PostRepository {
   constructor(private readonly db: DrizzleDB) {}
 
-  async findBySlug(slug: Slug): Promise<Post | null> {
+  async findBySlug(slug: string): Promise<Post | null> {
     const row = await this.db.query.posts.findFirst({
-      where: eq(posts.slug, slug.value),
+      where: eq(posts.slug, slug),
     });
-    return row ? PostMapper.toDomain(row) : null;
+    return row ? toDomain(row) : null;
   }
+}
+
+export async function createPost(
+  repo: PostRepository,
+  input: CreatePostInput,
+  authorId: string,
+): Promise<Post> {
+  const slug = createSlug(input.title);
+  return repo.create({ ...input, slug, authorId });
 }
 ```
 
@@ -231,19 +214,14 @@ export class DrizzlePostRepository implements PostRepository {
 ### 설정
 
 ```
-src/server/db/
-├── index.ts          # DB 커넥션 (drizzle + postgres)
-├── schema/           # 테이블 스키마
-│   ├── posts.ts
-│   ├── users.ts
-│   └── comments.ts
-└── migrations/       # 자동 생성 마이그레이션
+src/shared/db/schema.ts    # 테이블 스키마 (단일 파일)
+src/server/db/index.ts     # DB 커넥션
 ```
 
 ### 스키마 정의
 
 ```ts
-// src/server/db/schema/posts.ts
+// src/shared/db/schema.ts
 import { pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 export const posts = pgTable('posts', {

@@ -9,19 +9,19 @@
 
 ### Agents (역할별 가이드)
 
-| 문서                                                           | 설명                          | 핵심 키워드                        |
-| -------------------------------------------------------------- | ----------------------------- | ---------------------------------- |
-| [planning](.claude/agents/planning.md)                         | 기능 기획, 요구사항 분석, PRD | 스토리, WBS, 우선순위              |
-| [frontend-development](.claude/agents/frontend-development.md) | FSD 구조, 컴포넌트, 상태관리  | shadcn/ui, Zustand, TanStack Query |
-| [backend-api](.claude/agents/backend-api.md)                   | oRPC, DDD, 인프라 통합        | Drizzle, Supabase, Inngest         |
-| [quality-testing](.claude/agents/quality-testing.md)           | 테스트 전략, 모니터링         | Vitest, Playwright, Sentry         |
+| 문서                                                           | 설명                              | 핵심 키워드                        |
+| -------------------------------------------------------------- | --------------------------------- | ---------------------------------- |
+| [planning](.claude/agents/planning.md)                         | 기능 기획, 요구사항 분석, PRD     | 스토리, WBS, 우선순위              |
+| [frontend-development](.claude/agents/frontend-development.md) | Features 구조, 컴포넌트, 상태관리 | shadcn/ui, Zustand, TanStack Query |
+| [backend-api](.claude/agents/backend-api.md)                   | oRPC, 플랫 도메인, 인프라 통합    | Drizzle, Supabase, Inngest         |
+| [quality-testing](.claude/agents/quality-testing.md)           | 테스트 전략, 모니터링             | Vitest, Playwright, Sentry         |
 
 ### Skills (규칙 및 설정)
 
 | 문서                                                   | 설명                           | 핵심 키워드                |
 | ------------------------------------------------------ | ------------------------------ | -------------------------- |
 | [code-conventions](.claude/skills/code-conventions.md) | 코딩 규칙, Git, 보안           | ESLint, 명명규칙, 금지사항 |
-| [project-setup](.claude/skills/project-setup.md)       | 기술 스택, 폴더 구조, 환경변수 | FSD+DDD, pnpm, .env        |
+| [project-setup](.claude/skills/project-setup.md)       | 기술 스택, 폴더 구조, 환경변수 | Features+Flat, pnpm, .env  |
 
 ---
 
@@ -44,21 +44,12 @@
 ### 아키텍처 의존 방향
 
 ```
-FSD (프론트엔드): app → views → widgets → features → entities → shared
-DDD (백엔드):    domain(순수 TS, 외부 의존 금지) ← application ← infrastructure
+프론트엔드: app/ → features/ → shared/  (features 간 cross-import 금지)
+백엔드:     domains/{도메인}/types → repository → use-cases → oRPC 라우터
 ```
 
-- 같은 FSD 레이어의 슬라이스 간 cross-import 금지
-- 모든 슬라이스는 `index.ts` (public API)를 통해서만 외부 노출
-
-### 이름 충돌 주의
-
-| 경로                             | 역할                                       | 혼동 금지           |
-| -------------------------------- | ------------------------------------------ | ------------------- |
-| `app/`                           | Next.js App Router (라우팅, layout, route) | `src/app/`과 다름   |
-| `src/app/`                       | FSD app 레이어 (providers, styles, store)  | `app/`과 다름       |
-| `src/entities/`                  | FSD — 도메인 UI 표현 (PostCard 등)         | DDD entities와 다름 |
-| `src/domains/*/domain/entities/` | DDD — 비즈니스 엔티티 (순수 TS)            | FSD entities와 다름 |
+- `features/` 내 슬라이스 간 직접 import 금지 (공통 코드는 `shared/`로)
+- `shared/layout/`: Header, Footer 등 전역 레이아웃 컴포넌트
 
 ### 작업 프로세스 (필수)
 
@@ -79,8 +70,8 @@ DDD (백엔드):    domain(순수 TS, 외부 의존 금지) ← application ← 
 ### 구현 순서 원칙
 
 ```
-백엔드 먼저: domain → application → infrastructure → oRPC 라우터
-프론트 이후: entities → features → widgets → views
+백엔드 먼저: types.ts → repository.ts → use-cases/ → oRPC 라우터
+프론트 이후: shared/ → features/{기능}/components, hooks, schemas
 ```
 
 ### oRPC 사용처 구분
@@ -110,21 +101,21 @@ DDD (백엔드):    domain(순수 TS, 외부 의존 금지) ← application ← 
 
 ### UI 컴포넌트 추가
 
-1. [frontend-development.md](.claude/agents/frontend-development.md)에서 FSD 레이어 확인
+1. [frontend-development.md](.claude/agents/frontend-development.md)에서 features 구조 확인
 2. shadcn/ui 기반으로 `src/shared/ui/`에 래핑 컴포넌트 생성
-3. 해당 FSD 레이어 슬라이스에 조합
+3. 해당 feature 슬라이스의 `components/`에 조합
 
 ### API 엔드포인트 추가
 
 1. [backend-api.md](.claude/agents/backend-api.md)에서 oRPC 패턴 확인
-2. DDD 도메인 구조에 따라 유스케이스 → 라우터 → 프로시저 순서로 구현
+2. `domains/{도메인}/` 구조에 따라 types → repository → use-cases → oRPC 라우터 순서로 구현
 3. Zod 스키마로 입출력 검증
 
 ### 블로그 포스트 기능
 
-1. 도메인: `src/domains/post/` (DDD 구조)
+1. 도메인: `src/domains/post/` (types.ts, repository.ts, use-cases/)
 2. API: `src/server/orpc/routers/post.ts` (oRPC 프로시저)
-3. UI: `src/entities/post/`, `src/features/post-*/`, `src/widgets/post-feed/`
+3. UI: `src/features/post/components/`, `src/features/home/components/`
 
 ---
 
@@ -154,12 +145,12 @@ pnpm ui:add           # shadcn/ui 컴포넌트 추가
 
 ## Finding Information
 
-| 찾고 싶은 것         | 참고 문서                                                         |
-| -------------------- | ----------------------------------------------------------------- |
-| 폴더 구조, 환경변수  | [project-setup.md](.claude/skills/project-setup.md)               |
-| 명명 규칙, 금지 사항 | [code-conventions.md](.claude/skills/code-conventions.md)         |
-| oRPC 엔드포인트 패턴 | [backend-api.md](.claude/agents/backend-api.md)                   |
-| 컴포넌트 작성법, FSD | [frontend-development.md](.claude/agents/frontend-development.md) |
-| 테스트 작성법        | [quality-testing.md](.claude/agents/quality-testing.md)           |
-| 기능 기획 프로세스   | [planning.md](.claude/agents/planning.md)                         |
-| 기능 계획 문서       | `docs/plans/active/` 또는 `docs/plans/completed/`                 |
+| 찾고 싶은 것              | 참고 문서                                                         |
+| ------------------------- | ----------------------------------------------------------------- |
+| 폴더 구조, 환경변수       | [project-setup.md](.claude/skills/project-setup.md)               |
+| 명명 규칙, 금지 사항      | [code-conventions.md](.claude/skills/code-conventions.md)         |
+| oRPC 엔드포인트 패턴      | [backend-api.md](.claude/agents/backend-api.md)                   |
+| 컴포넌트 작성법, Features | [frontend-development.md](.claude/agents/frontend-development.md) |
+| 테스트 작성법             | [quality-testing.md](.claude/agents/quality-testing.md)           |
+| 기능 기획 프로세스        | [planning.md](.claude/agents/planning.md)                         |
+| 기능 계획 문서            | `docs/plans/active/` 또는 `docs/plans/completed/`                 |

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { listTags } from '@/domains/tag/application/use-cases/list-tags';
-import { DrizzleTagRepository } from '@/domains/tag/infrastructure/repositories/drizzle-tag-repository';
+import { DrizzleTagRepository } from '@/domains/tag/repository';
+import { listTags } from '@/domains/tag/use-cases/list-tags';
 
 import { os } from '../base';
 

@@ -48,72 +48,68 @@
 ```
 project-root/
 ├── app/                              # Next.js App Router
-│   ├── (blog)/                       # 블로그 라우트 그룹
-│   │   ├── page.tsx                  # 홈
-│   │   └── posts/[slug]/page.tsx     # 포스트 상세
-│   ├── (admin)/                      # 관리자 라우트 그룹
-│   ├── rpc/[[...rest]]/route.ts      # oRPC 핸들러
-│   ├── api/                          # 기타 API Routes (업로드 등)
+│   ├── page.tsx                      # 홈
+│   ├── about/page.tsx                # 소개
+│   ├── portfolio/[slug]/page.tsx     # 포트폴리오 상세
+│   ├── study/[slug]/page.tsx         # 스터디 상세
+│   ├── login/page.tsx                # 로그인
+│   ├── api/rpc/[[...orpc]]/route.ts  # oRPC 핸들러
 │   ├── layout.tsx                    # 루트 레이아웃
-│   └── proxy.ts                      # Next.js 16 미들웨어 (구 middleware.ts)
+│   └── providers.tsx                 # 전역 프로바이더
 │
 ├── src/
-│   ├── app/                          # FSD: 전역 설정
-│   │   ├── providers/                # QueryClientProvider, ThemeProvider 등
-│   │   ├── styles/                   # 전역 CSS, 테마
-│   │   └── store/                    # 전역 Zustand 스토어
+│   ├── app/                          # Next.js App Router 페이지
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── providers.tsx
+│   │   └── ...                       # 라우트별 page/loading/error
 │   │
-│   ├── views/                        # FSD: 페이지 컴포지션 (Next.js Pages 라우터 충돌 방지)
-│   │   └── home/                     # 홈 페이지 조합 로직
+│   ├── features/                     # 기능 중심 프론트엔드
+│   │   ├── auth/
+│   │   │   ├── components/login-form.tsx
+│   │   │   ├── hooks/use-login.ts
+│   │   │   └── schemas/login.schema.ts
+│   │   ├── post/
+│   │   │   ├── components/           # post-card, post-editor, editor-toolbar 등
+│   │   │   ├── hooks/               # use-auto-save, use-editor-setup
+│   │   │   └── lib/extensions.ts
+│   │   └── home/
+│   │       └── components/           # hero-section, recent-posts-section
 │   │
-│   ├── widgets/                      # FSD: 복합 UI 블록
-│   │   ├── header/                   # 헤더
-│   │   ├── footer/                   # 푸터
-│   │   └── post-feed/                # 포스트 피드
-│   │
-│   ├── features/                     # FSD: 사용자 기능
-│   │   ├── post-create/              # 포스트 작성
-│   │   ├── post-search/              # 포스트 검색
-│   │   └── auth/                     # 인증 기능
-│   │
-│   ├── entities/                     # FSD: 비즈니스 도메인 UI
-│   │   ├── post/                     # PostCard, PostPreview 등
-│   │   ├── user/                     # UserAvatar, UserProfile 등
-│   │   └── comment/                  # CommentItem 등
-│   │
-│   ├── shared/                       # FSD: 공유
+│   ├── shared/                       # 공유
 │   │   ├── api/                      # oRPC 클라이언트 (orpc.ts, orpc.server.ts)
 │   │   ├── ui/                       # shadcn/ui 래핑 컴포넌트
 │   │   ├── lib/                      # 유틸리티 함수
-│   │   └── config/                   # 설정 상수
+│   │   ├── layout/                   # Header, Footer, MobileNav
+│   │   └── db/schema.ts             # Drizzle 스키마
 │   │
-│   ├── domains/                      # DDD: 백엔드 도메인
+│   ├── domains/                      # 백엔드 도메인 (플랫 구조)
 │   │   ├── post/
-│   │   │   ├── domain/               # 엔티티, 값 객체, 저장소 인터페이스
-│   │   │   ├── application/          # 유스케이스, 커맨드, 쿼리
-│   │   │   └── infrastructure/       # Drizzle 저장소 구현체
-│   │   ├── user/
-│   │   ├── comment/
-│   │   └── media/
+│   │   │   ├── types.ts             # 엔티티, DTO, Repository 인터페이스
+│   │   │   ├── repository.ts        # Drizzle 구현체 + 매퍼
+│   │   │   ├── slug.ts              # 슬러그 값 객체
+│   │   │   └── use-cases/           # create, update, delete, list, get-by-slug
+│   │   ├── image/
+│   │   │   ├── types.ts
+│   │   │   ├── repository.ts
+│   │   │   ├── storage.ts           # R2 스토리지 연동
+│   │   │   └── use-cases/           # presign, confirm, delete, sync
+│   │   └── tag/
+│   │       ├── types.ts
+│   │       ├── repository.ts
+│   │       └── use-cases/list-tags.ts
 │   │
 │   ├── server/                       # 서버 공통
-│   │   ├── orpc/                     # oRPC 라우터, 미들웨어, 컨텍스트
-│   │   │   ├── routers/
-│   │   │   ├── middleware/
-│   │   │   └── context.ts
-│   │   └── db/                       # Drizzle 설정, 스키마
-│   │       ├── index.ts
-│   │       ├── schema/
-│   │       └── migrations/
+│   │   ├── orpc/
+│   │   │   ├── index.ts
+│   │   │   ├── base.ts
+│   │   │   ├── context.ts
+│   │   │   ├── middleware.ts         # 인증 미들웨어
+│   │   │   └── routers/             # auth, post, tag, upload
+│   │   └── db/index.ts              # DB 커넥션
 │   │
-│   └── messages/                     # i18n 메시지
-│       ├── ko.json
-│       └── en.json
-│
-├── tests/                            # 테스트
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
+│   ├── proxy.ts                      # Next.js 16 프록시 (구 middleware.ts)
+│   └── messages/                     # i18n 메시지 (ko.json, en.json)
 │
 ├── docs/                             # 프로젝트 문서
 │   └── plans/
@@ -180,6 +176,6 @@ pnpm dev                      # 개발 서버 시작
 
 1. `docs/plans/active/{feature}.md`에 기능 계획 작성
 2. `docs/plans/completed/` 확인하여 기존 구현과 충돌 방지
-3. 백엔드(도메인 → oRPC) → 프론트엔드(엔티티 → 피처 → 위젯) 순서로 구현
+3. 백엔드(types → repository → use-cases → oRPC) → 프론트엔드(shared → features) 순서로 구현
 4. 테스트 작성 및 검증
 5. 완료 시: `active/` → `completed/`로 이동, CHANGELOG.md 업데이트

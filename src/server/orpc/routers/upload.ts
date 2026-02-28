@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
-import { confirmUpload } from '@/domains/image/application/use-cases/confirm-upload';
-import { deleteImage } from '@/domains/image/application/use-cases/delete-image';
-import { presignUpload } from '@/domains/image/application/use-cases/presign-upload';
-import { DrizzleImageRepository } from '@/domains/image/infrastructure/repositories/drizzle-image-repository';
+import { DrizzleImageRepository } from '@/domains/image/repository';
+import { confirmUpload } from '@/domains/image/use-cases/confirm-upload';
+import { deleteImage } from '@/domains/image/use-cases/delete-image';
+import { presignUpload } from '@/domains/image/use-cases/presign-upload';
 
 import { os } from '../base';
-import { protectedProcedure } from '../middleware/auth';
+import { protectedProcedure } from '../middleware';
 
 export const uploadRouter = os.router({
   /**

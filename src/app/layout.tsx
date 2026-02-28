@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 
+import { Footer } from '@/shared/layout/footer';
+import { Header } from '@/shared/layout/header';
 import { Toaster } from '@/shared/ui/sonner';
-import { Footer } from '@/widgets/footer';
-import { Header } from '@/widgets/header';
 
 import './globals.css';
 import { Providers } from './providers';

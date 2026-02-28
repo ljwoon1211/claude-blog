@@ -1,77 +1,61 @@
 # Frontend Development Guide
 
-## FSD (Feature-Sliced Design) 레이어 구조
+## Features-based 구조
 
 ```
 src/
-├── app/          # 전역 providers, styles, store
-├── views/        # 페이지 컴포지션 (라우트별 조합)
-├── widgets/      # 복합 UI 블록 (header/, post-feed/, sidebar/)
-├── features/     # 사용자 기능 단위 (post-create, post-search, auth)
-├── entities/     # 비즈니스 도메인 UI (post/PostCard, user/UserAvatar)
-└── shared/       # 공유 유틸리티, API 클라이언트, 공통 UI
+├── app/          # Next.js App Router (라우팅, layout, providers)
+├── features/     # 기능 중심 슬라이스 (auth/, post/, home/)
+└── shared/       # 공유 UI, API 클라이언트, 유틸리티, 레이아웃
 ```
 
-### FSD 규칙
+### 구조 규칙
 
-| 규칙                                  | 설명                                                          |
-| ------------------------------------- | ------------------------------------------------------------- |
-| **상위 → 하위만 참조**                | widgets → features, entities, shared (역방향 금지)            |
-| **같은 레이어 슬라이스 간 참조 금지** | `features/auth/`에서 `features/post-create/` 직접 import 금지 |
-| **Public API**                        | 각 슬라이스는 `index.ts`를 통해서만 외부 노출                 |
-| **슬라이스 독립성**                   | 각 슬라이스는 독립 배포 가능한 단위                           |
+| 규칙                                   | 설명                                                      |
+| -------------------------------------- | --------------------------------------------------------- |
+| **의존 방향: app → features → shared** | 역방향 참조 금지                                          |
+| **features 간 cross-import 금지**      | `features/auth/`에서 `features/post/` 직접 import 금지    |
+| **공통 코드는 shared/로**              | 여러 feature에서 쓰이는 컴포넌트/훅은 `shared/`에 배치    |
+| **레이아웃은 shared/layout/**          | Header, Footer 등 전역 레이아웃은 `shared/layout/`에 위치 |
 
-### 레이어별 역할
+### 디렉토리별 역할
 
-**app/** — 전역 설정
+**app/** — Next.js App Router
 
-- `providers/`: QueryClientProvider, ThemeProvider, IntlProvider
-- `styles/`: 전역 CSS, Tailwind 기본 설정
-- `store/`: 앱 전역 Zustand 스토어
+- 라우팅, layout, loading, error 페이지
+- `providers.tsx`: QueryClientProvider, ThemeProvider, IntlProvider
+- Server Component에서 데이터 페칭 후 feature 컴포넌트에 전달
 
-**views/** — 페이지 컴포지션
+**features/** — 기능 슬라이스
 
-- Next.js `app/` 라우트에서 호출되는 페이지 조합 컴포넌트
-- widgets와 features를 조합하여 완성된 페이지 구성
-- 비즈니스 로직 없이 조합만 담당
-
-**widgets/** — 복합 UI 블록
-
-- 여러 entities/features를 조합한 독립적 UI 블록
-- 예: `header/` (로고 + 네비게이션 + 사용자 메뉴)
-- 예: `post-feed/` (PostCard 목록 + 페이지네이션 + 필터)
-
-**features/** — 사용자 기능
-
-- 하나의 완결된 사용자 인터랙션 단위
-- 예: `post-create/` (작성 폼 + 제출 로직 + 유효성 검사)
-- 예: `post-search/` (검색 입력 + 결과 표시 + 필터)
-
-**entities/** — 비즈니스 도메인 UI
-
-- 도메인 모델의 UI 표현
-- 예: `post/` → `PostCard`, `PostPreview`, `PostMeta`
-- 예: `user/` → `UserAvatar`, `UserBadge`
+- 하나의 기능 도메인을 위한 UI + 로직 묶음
+- `features/auth/`: 로그인 폼, 인증 훅, 스키마
+- `features/post/`: 포스트 카드, 에디터, 자동저장 훅
+- `features/home/`: 히어로 섹션, 최근 포스트 섹션
 
 **shared/** — 공유
 
 - `api/`: oRPC 클라이언트 (`orpc.ts`, `orpc.server.ts`)
 - `ui/`: shadcn/ui 래핑 컴포넌트
 - `lib/`: 유틸리티 함수 (날짜 포맷, 문자열 처리)
-- `config/`: 상수, 환경변수 타입
+- `layout/`: Header, Footer, MobileNav 등 전역 레이아웃
+- `db/`: Drizzle 스키마
 
-### 슬라이스 내부 구조
+### 슬라이스 내부 구조 (세그먼트)
 
 ```
-src/features/post-create/
-├── ui/                   # 컴포넌트
-│   └── post-create-form.tsx
-├── model/                # 로직, 훅, 스토어
-│   ├── use-create-post.ts
-│   └── store.ts
-├── api/                  # API 호출 (TanStack Query)
-│   └── queries.ts
-└── index.ts              # Public API (외부 노출 항목)
+src/features/post/
+├── components/           # UI 컴포넌트
+│   ├── post-card.tsx
+│   ├── post-editor.tsx
+│   ├── editor-toolbar.tsx
+│   └── editor-menu-bar.tsx
+├── hooks/                # 커스텀 훅
+│   ├── use-auto-save.ts
+│   └── use-editor-setup.ts
+├── schemas/              # Zod 스키마 (폼 검증 등)
+└── lib/                  # 유틸리티, 확장 설정
+    └── extensions.ts
 ```
 
 ---
@@ -114,7 +98,7 @@ export function LikeButton({ postId }: { postId: string }) {
 ### 서버 상태: TanStack Query + oRPC
 
 ```ts
-// features/post-search/api/queries.ts
+// features/post/hooks/use-post-list.ts
 import { useQuery } from '@tanstack/react-query';
 
 import { orpc } from '@/shared/api/orpc';
@@ -130,7 +114,7 @@ export function usePostList(cursor?: string) {
 ### 클라이언트 상태: Zustand
 
 ```ts
-// features/post-create/model/store.ts
+// features/post/hooks/use-post-store.ts
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
