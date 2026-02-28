@@ -1,6 +1,10 @@
+'use cache';
+
+import { cacheTag } from 'next/cache';
 import { notFound, redirect } from 'next/navigation';
 
 import { Post } from '@/domains/post/types';
+import { GiscusComments } from '@/features/comment';
 import { ArticleHeader } from '@/features/post/components/article-header';
 import { PostDetailBody } from '@/features/post/components/post-detail-body';
 import { TagsAndShare } from '@/features/post/components/tags-and-share';
@@ -11,6 +15,8 @@ interface Props {
 }
 
 export default async function StudyDetailPage({ params }: Props) {
+  cacheTag('posts');
+
   const { slug } = await params;
   const result = await serverOrpc.post.getBySlug({ slug });
 
@@ -33,6 +39,7 @@ export default async function StudyDetailPage({ params }: Props) {
       <PostDetailBody content={post.content} />
       <TagsAndShare tags={post.tags} />
       <div className="border-border mx-4 border-t md:mx-16 lg:mx-60" />
+      <GiscusComments />
     </article>
   );
 }

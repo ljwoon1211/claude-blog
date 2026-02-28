@@ -9,7 +9,7 @@ const navItems = [
   { href: '/about', label: '자기소개' },
   { href: '/portfolio', label: '포트폴리오' },
   { href: '/study', label: '공부' },
-  { href: '/retrospect', label: '회고' },
+  { href: '/retrospective', label: '회고' },
 ];
 
 export function Header() {

@@ -14,7 +14,7 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export default async function PortfolioDetailPage({ params }: Props) {
+export default async function RetrospectiveDetailPage({ params }: Props) {
   cacheTag('posts');
 
   const { slug } = await params;
@@ -24,7 +24,7 @@ export default async function PortfolioDetailPage({ params }: Props) {
 
   if ('redirect' in result) {
     const r = result as unknown as { slug: string };
-    redirect(`/portfolio/${r.slug}`);
+    redirect(`/retrospective/${r.slug}`);
   }
 
   const post = result as unknown as Post;

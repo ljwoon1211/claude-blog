@@ -6,11 +6,11 @@ import { Post } from '@/domains/post/types';
 import { PostListView } from '@/features/post/components/post-list-view';
 import { serverOrpc } from '@/shared/api/orpc.server';
 
-export default async function PortfolioPage() {
+export default async function RetrospectivePage() {
   cacheTag('posts');
 
   const data = await serverOrpc.post.list({
-    category: 'portfolio',
+    category: 'retrospective',
     limit: 50,
   });
   const posts = (data?.posts ?? []) as Post[];

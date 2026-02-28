@@ -1,3 +1,5 @@
+import { revalidateTag } from 'next/cache';
+
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -10,6 +12,7 @@ import { deletePost } from '@/domains/post/use-cases/delete-post';
 import { getPostBySlug } from '@/domains/post/use-cases/get-post-by-slug';
 import { listPosts } from '@/domains/post/use-cases/list-posts';
 import { updatePost } from '@/domains/post/use-cases/update-post';
+import { invalidateTagCache } from '@/domains/tag/use-cases/invalidate-tag-cache';
 import * as schema from '@/shared/db/schema';
 
 import { os } from '../base';
@@ -75,6 +78,8 @@ export const postRouter = os.router({
       const imageRepo = new DrizzleImageRepository(context.db);
       await syncPostImages(imageRepo, post.id, input.content);
 
+      revalidateTag('posts', 'default');
+      await invalidateTagCache();
       return post;
     }),
 
@@ -108,6 +113,8 @@ export const postRouter = os.router({
         await syncPostImages(imageRepo, post.id, input.content);
       }
 
+      revalidateTag('posts', 'default');
+      await invalidateTagCache();
       return post;
     }),
 
@@ -140,6 +147,8 @@ export const postRouter = os.router({
         await deleteObject(img.key).catch(console.error);
       }
 
+      revalidateTag('posts', 'default');
+      await invalidateTagCache();
       return { success: true };
     }),
 });
