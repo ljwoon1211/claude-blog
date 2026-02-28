@@ -1,32 +1,18 @@
 import { Post } from '@/domains/post/types';
+import { AboutTeaser } from '@/features/home/components/about-teaser';
 import { HeroSection } from '@/features/home/components/hero-section';
 import { RecentPostsSection } from '@/features/home/components/recent-posts-section';
 import { serverOrpc } from '@/shared/api/orpc.server';
 
 export default async function Home() {
-  const [portfolioData, studyData] = await Promise.all([
-    serverOrpc.post.list({ limit: 3, category: 'portfolio' }),
-    serverOrpc.post.list({ limit: 3, category: 'study' }),
-  ]);
-
-  const recentPortfolios = (portfolioData?.posts ?? []) as Post[];
-  const recentStudies = (studyData?.posts ?? []) as Post[];
+  const recentData = await serverOrpc.post.list({ limit: 3 });
+  const recentPosts = (recentData?.posts ?? []) as Post[];
 
   return (
-    <div className="flex flex-col gap-16 pt-8 pb-16 md:pt-16">
+    <div className="flex flex-col gap-8 pb-16 md:gap-12">
       <HeroSection />
-      <RecentPostsSection
-        title="Recent Portfolios"
-        viewAllHref="/portfolio"
-        posts={recentPortfolios}
-        emptyMessage="No portfolios to display."
-      />
-      <RecentPostsSection
-        title="Recent Studies"
-        viewAllHref="/study"
-        posts={recentStudies}
-        emptyMessage="No study notes to display."
-      />
+      <RecentPostsSection posts={recentPosts} />
+      <AboutTeaser />
     </div>
   );
 }

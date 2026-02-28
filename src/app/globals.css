@@ -1,14 +1,16 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-mono);
+  --font-display: var(--font-display);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -28,6 +30,8 @@
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-tint: var(--accent-tint);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -38,6 +42,13 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-surface: var(--surface);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-disabled: var(--text-disabled);
+  --color-text-on-accent: var(--text-on-accent);
+  --color-positive: var(--positive);
+  --color-warning: var(--warning);
+  --color-border-subtle: var(--border-subtle);
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
@@ -45,6 +56,8 @@
   --radius-2xl: var(--radius-2xl);
   --radius-3xl: var(--radius-3xl);
   --radius-4xl: calc(var(--radius-3xl) + 4px);
+  --radius-button: var(--radius-button);
+  --radius-pill: var(--radius-pill);
 }
 
 :root {
@@ -55,6 +68,8 @@
   --radius-xl: 20px;
   --radius-2xl: 24px;
   --radius-3xl: 28px;
+  --radius-button: 24px;
+  --radius-pill: 28px;
   --background: #faf8f5;
   --foreground: #191f28;
   --card: #ffffff;
@@ -69,6 +84,15 @@
   --muted-foreground: #4e5968;
   --accent: #f5f3ef;
   --accent-foreground: #191f28;
+  --accent-hover: #1b64da;
+  --accent-tint: #ebf3fe;
+  --surface: #f5f3ef;
+  --text-tertiary: #8b95a1;
+  --text-disabled: #b0b8c1;
+  --text-on-accent: #ffffff;
+  --positive: #34c759;
+  --warning: #ff9500;
+  --border-subtle: #f0ede8;
   --destructive: #e54d2e;
   --destructive-foreground: #ffffff;
   --border: #e8e4df;
@@ -87,6 +111,9 @@
   --sidebar-accent-foreground: #191f28;
   --sidebar-border: #e8e4df;
   --sidebar-ring: #3182f6;
+  --font-display: 'Fraunces Variable', serif;
+  --font-ui: 'Pretendard Variable', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
 }
 
 .dark {
@@ -104,6 +131,15 @@
   --muted-foreground: #b0b8c1;
   --accent: #2b3542;
   --accent-foreground: #f2f4f6;
+  --accent-hover: #6aadff;
+  --accent-tint: #1e2f4a;
+  --surface: #2b3542;
+  --text-tertiary: #8b95a1;
+  --text-disabled: #4e5968;
+  --text-on-accent: #ffffff;
+  --positive: #30d158;
+  --warning: #ffb340;
+  --border-subtle: #2b3542;
   --destructive: #ff6b6b;
   --destructive-foreground: #ffffff;
   --border: #36414e;
@@ -129,6 +165,101 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
+}
+
+/* Tiptap article prose styles */
+.prose-article {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--foreground);
+  letter-spacing: -0.2px;
+}
+
+.prose-article h2 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.prose-article h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-article p {
+  margin-bottom: 1.25rem;
+}
+
+.prose-article pre {
+  background: #1e1e2e;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.prose-article pre code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  color: #cdd6f4;
+}
+
+.prose-article code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--muted);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+
+.prose-article pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.prose-article ul,
+.prose-article ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.prose-article li {
+  margin-bottom: 0.25rem;
+}
+
+.prose-article blockquote {
+  border-left: 3px solid var(--primary);
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.prose-article img {
+  border-radius: var(--radius-md);
+  max-width: 100%;
+  margin: 1.5rem 0;
+}
+
+.prose-article a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.prose-article hr {
+  border-color: var(--border);
+  margin: 2rem 0;
 }

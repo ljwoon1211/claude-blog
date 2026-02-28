@@ -1,32 +1,24 @@
 import Link from 'next/link';
 
-import { ArrowRight } from 'lucide-react';
-
 import { Post } from '@/domains/post/types';
 import { PostCard } from '@/features/post/components/post-card';
 
 interface RecentPostsSectionProps {
-  title: string;
-  viewAllHref: string;
   posts: Post[];
-  emptyMessage: string;
 }
 
-export function RecentPostsSection({
-  title,
-  viewAllHref,
-  posts,
-  emptyMessage,
-}: RecentPostsSectionProps) {
+export function RecentPostsSection({ posts }: RecentPostsSectionProps) {
   return (
-    <section className="container mx-auto max-w-screen-2xl px-4 md:px-8">
+    <section className="mx-auto max-w-[1440px] px-4 md:px-8 lg:px-20">
       <div className="mb-8 flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">{title}</h2>
+        <h2 className="font-display text-foreground text-2xl font-medium tracking-tight">
+          최근 글
+        </h2>
         <Link
-          href={viewAllHref}
-          className="text-muted-foreground hover:text-foreground flex items-center text-sm font-medium"
+          href="/study"
+          className="text-text-tertiary hover:text-foreground text-sm font-medium transition-colors"
         >
-          View all <ArrowRight className="ml-1 h-4 w-4" />
+          전체 보기 →
         </Link>
       </div>
       {posts.length > 0 ? (
@@ -37,7 +29,7 @@ export function RecentPostsSection({
         </div>
       ) : (
         <p className="text-muted-foreground rounded-lg border border-dashed py-10 text-center">
-          {emptyMessage}
+          아직 작성된 글이 없습니다.
         </p>
       )}
     </section>

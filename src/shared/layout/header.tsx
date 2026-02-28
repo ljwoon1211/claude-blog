@@ -15,14 +15,13 @@ const navItems = [
 export function Header() {
   return (
     <header className="bg-card border-border sticky top-0 z-50 w-full border-b">
-      <div className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between px-4 md:px-8">
+      <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-between px-4 md:px-8 lg:px-20">
         <div className="flex items-center">
-          {/* Mobile navigation wrapper (only visible on small screens typically) */}
           <div className="md:hidden">
             <MobileNav items={navItems} />
           </div>
 
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center">
             <span className="font-display text-foreground text-lg font-semibold tracking-tight">
               Devlog.
             </span>
@@ -33,7 +32,7 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                className="text-text-tertiary hover:text-foreground text-sm transition-colors"
               >
                 {item.label}
               </Link>
@@ -43,8 +42,8 @@ export function Header() {
 
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <Avatar className="bg-primary/10 size-10">
-            <AvatarFallback className="text-primary bg-primary/10 text-sm font-semibold">
+          <Avatar className="bg-accent-tint size-10">
+            <AvatarFallback className="text-primary bg-accent-tint text-sm font-semibold">
               JW
             </AvatarFallback>
           </Avatar>
