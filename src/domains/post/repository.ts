@@ -1,4 +1,4 @@
-import { and, eq, ilike, inArray, lt, or } from 'drizzle-orm';
+import { and, eq, ilike, inArray, lt, or, sql } from 'drizzle-orm';
 
 import type { DB } from '@/server/db';
 import * as schema from '@/shared/db/schema';
@@ -78,7 +78,12 @@ export class DrizzlePostRepository implements PostRepository {
     }
 
     if (q) {
-      conditions.push(ilike(schema.posts.title, `%${q}%`));
+      conditions.push(
+        or(
+          sql`${schema.posts.searchVector} @@ websearch_to_tsquery('simple', ${q})`,
+          ilike(schema.posts.title, `%${q}%`),
+        ),
+      );
     }
 
     if (cursor) {

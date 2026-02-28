@@ -3,6 +3,8 @@ import { revalidateTag } from 'next/cache';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
+import { getPopularPosts } from '@/domains/analytics/use-cases/get-popular-posts';
+import { incrementView } from '@/domains/analytics/use-cases/increment-view';
 import { DrizzleImageRepository } from '@/domains/image/repository';
 import { deleteObject } from '@/domains/image/storage';
 import { syncPostImages } from '@/domains/image/use-cases/sync-post-images';
@@ -150,5 +152,29 @@ export const postRouter = os.router({
       revalidateTag('posts', 'default');
       await invalidateTagCache();
       return { success: true };
+    }),
+
+  incrementView: os
+    .input(z.object({ postId: z.string().uuid() }))
+    .handler(async ({ input, context }) => {
+      // IP 기반 fingerprint로 24시간 내 중복 방지
+      const ip =
+        context.headers?.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        context.headers?.get('x-real-ip') ??
+        'unknown';
+
+      await incrementView(input.postId, ip);
+      return { success: true };
+    }),
+
+  popular: os
+    .input(
+      z.object({
+        limit: z.number().min(1).max(20).default(5),
+      }),
+    )
+    .handler(async ({ input, context }) => {
+      const repo = new DrizzlePostRepository(context.db);
+      return getPopularPosts(repo, input.limit);
     }),
 });

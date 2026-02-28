@@ -1,6 +1,7 @@
 import { relations } from 'drizzle-orm';
 import {
   boolean,
+  customType,
   jsonb,
   pgEnum,
   pgTable,
@@ -9,6 +10,12 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
+
+const tsvector = customType<{ data: string }>({
+  dataType() {
+    return 'tsvector';
+  },
+});
 
 export const categoryEnum = pgEnum('category', [
   'portfolio',
@@ -28,6 +35,7 @@ export const posts = pgTable('posts', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   authorId: uuid('author_id').notNull(), // FK -> auth.users.id
+  searchVector: tsvector('search_vector'),
 });
 
 export const tags = pgTable('tags', {

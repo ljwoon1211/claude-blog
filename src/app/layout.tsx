@@ -33,6 +33,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
+      <head>
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="Devlog."
+          href="/feed.xml"
+        />
+      </head>
       <body
         className={`${fraunces.variable} ${ibmPlexMono.variable} antialiased`}
         suppressHydrationWarning
