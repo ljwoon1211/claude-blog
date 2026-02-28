@@ -1,14 +1,10 @@
 import Link from 'next/link';
 
+import { ImageIcon } from 'lucide-react';
+
 import { Post } from '@/domains/post/domain/entities/post';
 import { Badge } from '@/shared/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/shared/ui/card';
+import { Card, CardContent } from '@/shared/ui/card';
 
 interface PostCardProps {
   post: Post;
@@ -18,43 +14,44 @@ interface PostCardProps {
 export function PostCard({ post, className }: PostCardProps) {
   const formattedDate = new Date(post.createdAt).toLocaleDateString('ko-KR', {
     year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
   });
 
   return (
-    <Card className={className}>
-      <Link href={`/${post.category}/${post.slug}`} className="block h-full">
-        <CardHeader>
-          <div className="mb-2 flex items-center justify-between">
-            <Badge variant="secondary" className="capitalize">
+    <Card
+      className={`hover:bg-accent/50 overflow-hidden transition-colors ${className ?? ''}`}
+    >
+      <Link
+        href={`/${post.category}/${post.slug}`}
+        className="flex h-full flex-col"
+      >
+        <div className="bg-muted flex h-[200px] w-full items-center justify-center">
+          {/* TODO: Actual Image Implementation */}
+          <ImageIcon className="text-muted-foreground/50 size-8" />
+        </div>
+        <CardContent className="flex flex-col gap-3 p-5">
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="default" className="capitalize">
               {post.category}
             </Badge>
-            <span className="text-muted-foreground text-sm">
-              {formattedDate}
-            </span>
+            {post.tags.slice(0, 2).map((tag) => (
+              <Badge key={tag.id} variant="default">
+                {tag.name}
+              </Badge>
+            ))}
+            {post.tags.length > 2 && (
+              <Badge variant="default">+{post.tags.length - 2}</Badge>
+            )}
           </div>
-          <CardTitle className="line-clamp-2 text-xl">{post.title}</CardTitle>
-          <CardDescription className="mt-2 line-clamp-3 text-sm">
-            {/* TODO: If there's excerpt or plain text content */}
+          <h3 className="text-foreground line-clamp-2 text-lg leading-[1.4] font-semibold tracking-tight">
             {post.title}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {post.tags.slice(0, 3).map((tag) => (
-                <Badge key={tag.id} variant="outline" className="text-xs">
-                  {tag.name}
-                </Badge>
-              ))}
-              {post.tags.length > 3 && (
-                <Badge variant="outline" className="text-xs">
-                  +{post.tags.length - 3}
-                </Badge>
-              )}
-            </div>
-          )}
+          </h3>
+          <div className="text-muted-foreground flex items-center gap-2 text-[13px]">
+            <span>{formattedDate}</span>
+            <span>·</span>
+            <span>5분 읽기</span>
+          </div>
         </CardContent>
       </Link>
     </Card>
