@@ -25,6 +25,7 @@ export class DrizzleImageRepository implements ImageRepository {
     url: string;
     key: string;
     postId?: string;
+    uploadedBy?: string;
   }): Promise<Image> {
     const [row] = await this.db
       .insert(schema.images)
@@ -32,6 +33,7 @@ export class DrizzleImageRepository implements ImageRepository {
         url: input.url,
         key: input.key,
         postId: input.postId ?? null,
+        uploadedBy: input.uploadedBy ?? null,
       })
       .returning();
     return row!;

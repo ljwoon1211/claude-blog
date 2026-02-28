@@ -40,6 +40,7 @@ export type ListPostsOptions = {
   q?: string;
   cursor?: { createdAt: string; id: string };
   limit: number;
+  publishedOnly?: boolean;
 };
 
 export type ListPostsResult = {

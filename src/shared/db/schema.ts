@@ -62,6 +62,7 @@ export const images = pgTable('images', {
   url: varchar('url', { length: 512 }).notNull(),
   key: varchar('key', { length: 255 }).notNull().unique(),
   postId: uuid('post_id').references(() => posts.id, { onDelete: 'set null' }),
+  uploadedBy: uuid('uploaded_by'), // nullable: 기존 데이터 호환
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

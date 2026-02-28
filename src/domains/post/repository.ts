@@ -65,8 +65,13 @@ export class DrizzlePostRepository implements PostRepository {
   }
 
   async list(options: ListPostsOptions): Promise<ListPostsResult> {
-    const { category, tag, q, cursor, limit } = options;
+    const { category, tag, q, cursor, limit, publishedOnly } = options;
     const conditions = [];
+
+    // 공개 API에서는 published 게시글만 반환
+    if (publishedOnly) {
+      conditions.push(eq(schema.posts.published, true));
+    }
 
     if (category) {
       conditions.push(
@@ -78,10 +83,12 @@ export class DrizzlePostRepository implements PostRepository {
     }
 
     if (q) {
+      // LIKE 와일드카드 문자 이스케이프 (패턴 인젝션 방지)
+      const escapedQ = q.replace(/%/g, '\\%').replace(/_/g, '\\_');
       conditions.push(
         or(
           sql`${schema.posts.searchVector} @@ websearch_to_tsquery('simple', ${q})`,
-          ilike(schema.posts.title, `%${q}%`),
+          ilike(schema.posts.title, `%${escapedQ}%`),
         ),
       );
     }

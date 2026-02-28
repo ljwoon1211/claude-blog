@@ -39,6 +39,7 @@ export const defaultExtensions = [
   }),
   Link.configure({
     openOnClick: false,
+    validate: (url) => !/^\s*(javascript|data\s*:|vbscript)\s*:/i.test(url),
     HTMLAttributes: {
       class:
         'text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary',

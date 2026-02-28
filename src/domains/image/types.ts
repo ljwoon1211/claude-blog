@@ -3,6 +3,7 @@ export type Image = {
   url: string;
   key: string;
   postId: string | null;
+  uploadedBy: string | null;
   createdAt: Date;
 };
 
@@ -20,7 +21,12 @@ export type PresignedUploadResult = {
 export interface ImageRepository {
   findById(id: string): Promise<Image | null>;
   findByPostId(postId: string): Promise<Image[]>;
-  create(input: { url: string; key: string; postId?: string }): Promise<Image>;
+  create(input: {
+    url: string;
+    key: string;
+    postId?: string;
+    uploadedBy?: string;
+  }): Promise<Image>;
   linkToPost(imageId: string, postId: string): Promise<void>;
   linkUnlinkedByUrls(urls: string[], postId: string): Promise<void>;
   deleteById(id: string): Promise<void>;

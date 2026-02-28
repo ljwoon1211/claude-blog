@@ -20,7 +20,7 @@ function getBucketName(): string {
   return process.env.R2_BUCKET_NAME!;
 }
 
-function getPublicUrl(key: string): string {
+export function getPublicUrl(key: string): string {
   return `${process.env.R2_PUBLIC_URL}/${key}`;
 }
 

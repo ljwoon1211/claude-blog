@@ -58,3 +58,6 @@ next-env.d.ts
 docs/design
 
 .playwright-mcp/
+
+
+supabase/migrations

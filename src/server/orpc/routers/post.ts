@@ -1,5 +1,6 @@
 import { revalidateTag } from 'next/cache';
 
+import { ORPCError } from '@orpc/server';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -13,11 +14,14 @@ import { createPost } from '@/domains/post/use-cases/create-post';
 import { deletePost } from '@/domains/post/use-cases/delete-post';
 import { getPostBySlug } from '@/domains/post/use-cases/get-post-by-slug';
 import { listPosts } from '@/domains/post/use-cases/list-posts';
+import { sanitizeTiptapContent } from '@/domains/post/use-cases/sanitize-tiptap';
 import { updatePost } from '@/domains/post/use-cases/update-post';
 import { invalidateTagCache } from '@/domains/tag/use-cases/invalidate-tag-cache';
 import * as schema from '@/shared/db/schema';
+import { publicApiRateLimit, viewRateLimit } from '@/shared/lib/rate-limit';
 
 import { os } from '../base';
+import { extractClientIp } from '../context';
 import { protectedProcedure } from '../middleware';
 
 const categorySchema = z.enum(['portfolio', 'study', 'retrospective', 'page']);
@@ -28,6 +32,49 @@ const cursorSchema = z
     id: z.string(),
   })
   .optional();
+
+// TipTap JSON 기본 구조 검증 스키마
+type TiptapNode = {
+  type?: string;
+  text?: string;
+  attrs?: Record<string, unknown>;
+  marks?: Record<string, unknown>[];
+  content?: TiptapNode[];
+};
+
+const tiptapNodeSchema: z.ZodType<TiptapNode> = z.lazy(() =>
+  z.object({
+    type: z.string().optional(),
+    text: z.string().optional(),
+    attrs: z.record(z.string(), z.unknown()).optional(),
+    marks: z.array(z.record(z.string(), z.unknown())).optional(),
+    content: z.array(tiptapNodeSchema).optional(),
+  }),
+);
+
+const tiptapContentSchema = z.object({
+  type: z.literal('doc'),
+  content: z.array(tiptapNodeSchema).optional(),
+});
+
+/** 게시글이 현재 사용자의 소유인지 검증 */
+async function verifyPostOwnership(
+  repo: DrizzlePostRepository,
+  postId: string,
+  userId: string,
+): Promise<void> {
+  const post = await repo.findById(postId);
+  if (!post) {
+    throw new ORPCError('NOT_FOUND', {
+      message: '게시글을 찾을 수 없습니다.',
+    });
+  }
+  if (post.authorId !== userId) {
+    throw new ORPCError('FORBIDDEN', {
+      message: '이 게시글을 수정할 권한이 없습니다.',
+    });
+  }
+}
 
 export const postRouter = os.router({
   list: os
@@ -41,13 +88,33 @@ export const postRouter = os.router({
       }),
     )
     .handler(async ({ input, context }) => {
+      if (context.headers) {
+        const ip = extractClientIp(context.headers);
+        const { success } = await publicApiRateLimit.limit(ip);
+        if (!success) {
+          throw new ORPCError('TOO_MANY_REQUESTS', {
+            message: '요청이 너무 많습니다.',
+          });
+        }
+      }
+
       const repo = new DrizzlePostRepository(context.db);
-      return listPosts(repo, input);
+      return listPosts(repo, { ...input, publishedOnly: true });
     }),
 
   getBySlug: os
     .input(z.object({ slug: z.string() }))
     .handler(async ({ input, context }) => {
+      if (context.headers) {
+        const ip = extractClientIp(context.headers);
+        const { success } = await publicApiRateLimit.limit(ip);
+        if (!success) {
+          throw new ORPCError('TOO_MANY_REQUESTS', {
+            message: '요청이 너무 많습니다.',
+          });
+        }
+      }
+
       const repo = new DrizzlePostRepository(context.db);
 
       const findRedirect = async (oldSlug: string) => {
@@ -59,26 +126,38 @@ export const postRouter = os.router({
         return { postId: redirect.postId, currentSlug: redirect.post.slug };
       };
 
-      return getPostBySlug(repo, input.slug, findRedirect);
+      const result = await getPostBySlug(repo, input.slug, findRedirect);
+
+      // 미공개 게시글은 공개 API에서 접근 불가
+      if (result && !result.redirect && !result.post.published) {
+        return null;
+      }
+
+      return result;
     }),
 
   create: protectedProcedure
     .input(
       z.object({
         title: z.string().min(1).max(255),
-        content: z.unknown(),
+        content: tiptapContentSchema,
         category: categorySchema,
         tags: z.array(z.string()),
         published: z.boolean(),
-        thumbnail: z.string().optional(),
+        thumbnail: z.url().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
+      const sanitizedContent = sanitizeTiptapContent(
+        input.content as Record<string, unknown>,
+      );
+      const sanitizedInput = { ...input, content: sanitizedContent };
+
       const repo = new DrizzlePostRepository(context.db);
-      const post = await createPost(repo, input, context.user.id);
+      const post = await createPost(repo, sanitizedInput, context.user.id);
 
       const imageRepo = new DrizzleImageRepository(context.db);
-      await syncPostImages(imageRepo, post.id, input.content);
+      await syncPostImages(imageRepo, post.id, sanitizedContent);
 
       revalidateTag('posts', 'default');
       await invalidateTagCache();
@@ -90,16 +169,19 @@ export const postRouter = os.router({
       z.object({
         id: z.string().uuid(),
         title: z.string().min(1).max(255).optional(),
-        content: z.unknown().optional(),
+        content: tiptapContentSchema.optional(),
         slug: z.string().optional(),
         category: categorySchema.optional(),
         tags: z.array(z.string()).optional(),
         published: z.boolean().optional(),
-        thumbnail: z.string().optional(),
+        thumbnail: z.url().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
       const repo = new DrizzlePostRepository(context.db);
+
+      // 소유권 검증
+      await verifyPostOwnership(repo, input.id, context.user.id);
 
       const saveSlugRedirect = async (oldSlug: string, postId: string) => {
         await context.db
@@ -108,11 +190,20 @@ export const postRouter = os.router({
           .onConflictDoNothing({ target: schema.slugRedirects.oldSlug });
       };
 
-      const post = await updatePost(repo, input, saveSlugRedirect);
+      const sanitizedInput = input.content
+        ? {
+            ...input,
+            content: sanitizeTiptapContent(
+              input.content as Record<string, unknown>,
+            ),
+          }
+        : input;
 
-      if (input.content !== undefined) {
+      const post = await updatePost(repo, sanitizedInput, saveSlugRedirect);
+
+      if (sanitizedInput.content !== undefined) {
         const imageRepo = new DrizzleImageRepository(context.db);
-        await syncPostImages(imageRepo, post.id, input.content);
+        await syncPostImages(imageRepo, post.id, sanitizedInput.content);
       }
 
       revalidateTag('posts', 'default');
@@ -123,6 +214,11 @@ export const postRouter = os.router({
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .handler(async ({ input, context }) => {
+      const repo = new DrizzlePostRepository(context.db);
+
+      // 소유권 검증
+      await verifyPostOwnership(repo, input.id, context.user.id);
+
       const imageRepo = new DrizzleImageRepository(context.db);
 
       // 1. 삭제할 이미지 목록을 먼저 조회
@@ -157,11 +253,13 @@ export const postRouter = os.router({
   incrementView: os
     .input(z.object({ postId: z.string().uuid() }))
     .handler(async ({ input, context }) => {
-      // IP 기반 fingerprint로 24시간 내 중복 방지
-      const ip =
-        context.headers?.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-        context.headers?.get('x-real-ip') ??
-        'unknown';
+      const ip = extractClientIp(context.headers);
+
+      // Rate Limiting (대량 요청 방지)
+      const { success } = await viewRateLimit.limit(ip);
+      if (!success) {
+        return { success: false };
+      }
 
       await incrementView(input.postId, ip);
       return { success: true };
@@ -174,6 +272,16 @@ export const postRouter = os.router({
       }),
     )
     .handler(async ({ input, context }) => {
+      if (context.headers) {
+        const ip = extractClientIp(context.headers);
+        const { success } = await publicApiRateLimit.limit(ip);
+        if (!success) {
+          throw new ORPCError('TOO_MANY_REQUESTS', {
+            message: '요청이 너무 많습니다.',
+          });
+        }
+      }
+
       const repo = new DrizzlePostRepository(context.db);
       return getPopularPosts(repo, input.limit);
     }),
