@@ -12,7 +12,7 @@ interface Props {
 
 export default async function StudyDetailPage({ params }: Props) {
   const { slug } = await params;
-  const result = await serverOrpc.post.getBySlug({ slug }).catch(() => null);
+  const result = await serverOrpc.post.getBySlug({ slug });
 
   if (!result) notFound();
 

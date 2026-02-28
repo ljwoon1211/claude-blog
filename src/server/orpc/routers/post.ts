@@ -1,4 +1,3 @@
-import { ORPCError } from '@orpc/server';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -55,13 +54,7 @@ export const postRouter = os.router({
         return { postId: redirect.postId, currentSlug: redirect.post.slug };
       };
 
-      const result = await getPostBySlug(repo, input.slug, findRedirect);
-      if (!result) {
-        throw new ORPCError('NOT_FOUND', {
-          message: '게시글을 찾을 수 없습니다.',
-        });
-      }
-      return result;
+      return getPostBySlug(repo, input.slug, findRedirect);
     }),
 
   create: protectedProcedure
