@@ -1,8 +1,15 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { Post } from '@/domains/post/types';
+import { TiptapRenderer } from '@/features/post/components/tiptap-renderer';
 import { serverOrpc } from '@/shared/api/orpc.server';
 import { Button } from '@/shared/ui/button';
+
+export const metadata: Metadata = {
+  title: 'About',
+  description: '개발자 소개 및 프로필',
+};
 
 export default async function AboutPage() {
   const postResult = await serverOrpc.post.getBySlug({ slug: 'about' });
@@ -41,15 +48,7 @@ export default async function AboutPage() {
         */}
       </div>
       <div className="prose prose-zinc dark:prose-invert max-w-none">
-        {/* Placeholder: Needs tiptap HTML generator or renderer component */}
-        {typeof post.content === 'object' ? (
-          <p>
-            Tiptap Content Structure Placeholder. The content should be rendered
-            by a Tiptap viewer.
-          </p>
-        ) : (
-          <div>{String(post.content)}</div>
-        )}
+        <TiptapRenderer content={post.content} />
       </div>
     </div>
   );

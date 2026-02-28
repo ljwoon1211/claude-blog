@@ -2,36 +2,12 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '@/server/db';
 import * as schema from '@/shared/db/schema';
+import { extractTextFromTiptap } from '@/shared/lib/tiptap-utils';
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://localhost:3000';
 const SITE_TITLE = 'Devlog.';
 const SITE_DESCRIPTION =
   '기술을 탐구하고, 배움을 기록하고, 성장을 공유하는 공간';
-
-type TiptapNode = {
-  type?: string;
-  text?: string;
-  content?: TiptapNode[];
-};
-
-function extractTextFromTiptap(node: unknown, maxLength = 200): string {
-  const texts: string[] = [];
-
-  function walk(n: TiptapNode) {
-    if (n.text) {
-      texts.push(n.text);
-    }
-    if (Array.isArray(n.content)) {
-      for (const child of n.content) {
-        walk(child);
-      }
-    }
-  }
-
-  walk(node as TiptapNode);
-  const full = texts.join(' ').replace(/\s+/g, ' ').trim();
-  return full.length > maxLength ? `${full.slice(0, maxLength)}...` : full;
-}
 
 function escapeXml(str: string): string {
   return str

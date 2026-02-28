@@ -22,8 +22,22 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Devlog.',
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? 'https://localhost:3000',
+  ),
+  title: {
+    default: 'Devlog.',
+    template: '%s | Devlog.',
+  },
   description: '기술을 탐구하고, 배움을 기록하고, 성장을 공유하는 공간',
+  openGraph: {
+    type: 'website',
+    siteName: 'Devlog.',
+    locale: 'ko_KR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
 };
 
 export default function RootLayout({

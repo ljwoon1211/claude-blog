@@ -1,5 +1,4 @@
-'use cache';
-
+import type { Metadata } from 'next';
 import { cacheTag } from 'next/cache';
 import { notFound, redirect } from 'next/navigation';
 
@@ -9,12 +8,42 @@ import { ArticleHeader } from '@/features/post/components/article-header';
 import { PostDetailBody } from '@/features/post/components/post-detail-body';
 import { TagsAndShare } from '@/features/post/components/tags-and-share';
 import { serverOrpc } from '@/shared/api/orpc.server';
+import { extractTextFromTiptap } from '@/shared/lib/tiptap-utils';
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const result = await serverOrpc.post.getBySlug({ slug });
+
+  if (!result || 'redirect' in result) {
+    return { title: '게시글을 찾을 수 없습니다' };
+  }
+
+  const post = result as unknown as Post;
+  const description = extractTextFromTiptap(post.content, 160);
+
+  return {
+    title: post.title,
+    description,
+    openGraph: {
+      title: post.title,
+      description,
+      type: 'article',
+      ...(post.thumbnail && { images: [{ url: post.thumbnail }] }),
+    },
+    twitter: {
+      title: post.title,
+      description,
+      ...(post.thumbnail && { images: [post.thumbnail] }),
+    },
+  };
+}
+
 export default async function PortfolioDetailPage({ params }: Props) {
+  'use cache';
   cacheTag('posts');
 
   const { slug } = await params;
